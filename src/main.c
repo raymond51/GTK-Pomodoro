@@ -47,3 +47,4 @@ int main(int argc,
 }
 
 //func to init display: set pbar to 0
+//func to link res in code i.e g resource
