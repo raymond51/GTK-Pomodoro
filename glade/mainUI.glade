@@ -186,7 +186,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="play_btn_rest">
                     <property name="width-request">70</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>

@@ -312,7 +312,7 @@
               </object>
               <packing>
                 <property name="name">page0</property>
-                <property name="title" translatable="yes">page0</property>
+                <property name="title" translatable="yes">Timer</property>
               </packing>
             </child>
             <child>
@@ -323,7 +323,7 @@
               </object>
               <packing>
                 <property name="name">page1</property>
-                <property name="title" translatable="yes">page1</property>
+                <property name="title" translatable="yes">Tracker</property>
                 <property name="position">1</property>
               </packing>
             </child>
