@@ -4,22 +4,36 @@
 #define WORK 0
 #define REST 1
 
-/*Variables*/
-GtkWidget *g_window; //GTK window
+/*Structure*/
+struct TimerUI
+{
+
+    GtkLabel *label;
+
+    int hours;
+    int seconds;
+};
 
 /*Function Prototypes*/
 static void button_clicked(GtkWidget *widget, gpointer data);
+void init_timer(GtkBuilder *builder, struct TimerUI *timerUi);
 
 int main(int argc,
          char *argv[])
 {
-
+    /*Variables*/
+    GtkWidget *window; //GTK window
     GtkBuilder *builder;
     GtkLabel *workingLabel;
     GtkLabel *restingLabel;
     GtkButton *workButton_play;
     GtkButton *restButton_play;
     GError *error = NULL;
+
+    static uint8_t work_trig = WORK;
+    static uint8_t rest_trig = REST;
+
+    struct TimerUI work_TimerUI, rest_TimerUI;
 
     gtk_init(&argc, &argv);
 
@@ -34,19 +48,22 @@ int main(int argc,
     }
 
     /* Connect signal handlers to the constructed widgets. */
-    g_window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
-    g_signal_connect(g_window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
+    window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
+    gtk_window_set_title(GTK_WINDOW(window), "Pomodoroooo!");             //Set title of program
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
 
     workingLabel = GTK_LABEL(gtk_builder_get_object(builder, "label_working")); //Load label
     restingLabel = GTK_LABEL(gtk_builder_get_object(builder, "label_rest"));
     workButton_play = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_working"));
-    g_signal_connect(workButton_play, "clicked", G_CALLBACK(button_clicked), WORK); //callback function upon clicked action
+    g_signal_connect(workButton_play, "clicked", G_CALLBACK(button_clicked), &work_trig); //callback function upon clicked action, PARAM (final): pass address of data
 
     restButton_play = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_rest"));
-    g_signal_connect(restButton_play, "clicked", G_CALLBACK(button_clicked), REST);
+    g_signal_connect(restButton_play, "clicked", G_CALLBACK(button_clicked), &rest_trig);
+
+    //gtk_progress_bar_set_fraction
 
     gtk_builder_connect_signals(builder, NULL);
-    gtk_widget_show_all(g_window);
+    gtk_widget_show_all(window);
     gtk_main();              //run program loop
     g_object_unref(builder); //free object in memory
 
@@ -59,7 +76,7 @@ button_clicked(GtkWidget *widget,
                gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    g_print("Hello World, Value of btn: %d \n", data);
+    g_print("Hello World, Value of btn: %d \n", *(uint8_t *)data);
     //gtk_label_set_text(myLabel, "Helloooooooooo!");
 }
 
