@@ -30,7 +30,8 @@
                     <property name="height-request">120</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="fraction">0.47999999999999998</property>
+                    <property name="fraction">0.34999999999999998</property>
+                    <property name="pulse-step">0.01</property>
                   </object>
                   <packing>
                     <property name="x">10</property>
@@ -38,7 +39,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkProgressBar" id="pbar_rest">
+                  <object class="GtkProgressBar" id="pbar_resting">
                     <property name="width-request">250</property>
                     <property name="height-request">80</property>
                     <property name="visible">True</property>
@@ -166,7 +167,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="reset_btn_working">
                     <property name="width-request">20</property>
                     <property name="height-request">20</property>
                     <property name="visible">True</property>
@@ -186,7 +187,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="play_btn_rest">
+                  <object class="GtkButton" id="play_btn_resting">
                     <property name="width-request">70</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -206,7 +207,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="reset_btn_resting">
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -248,7 +249,7 @@
                     <property name="height-request">20</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Rest:</property>
+                    <property name="label" translatable="yes">Resting:</property>
                     <attributes>
                       <attribute name="font-desc" value="Sans Bold 10"/>
                       <attribute name="style" value="normal"/>
@@ -277,7 +278,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label_rest">
+                  <object class="GtkLabel" id="label_resting">
                     <property name="width-request">100</property>
                     <property name="height-request">80</property>
                     <property name="visible">True</property>
