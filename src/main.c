@@ -83,10 +83,6 @@ int main(int argc,
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType_data)
 {
     bool status_flag = true;
-    static uint8_t work_pp_trig = WORK_PLAY_PAUSE_BTN;
-    static uint8_t work_reset_trig = WORK_RESET_BTN;
-    static uint8_t rest_pp_trig = REST_PLAY_PAUSE_BTN;
-    static uint8_t rest_reset_trig = REST_RESET_BTN;
 
     switch (timerType_data)
     {
@@ -95,9 +91,9 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
         timerUi->is_playing = false; //start initial at pause state
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_working"));
         timerUi->play_pause_button = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_working"));
-        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(working_play_pause_btn_clicked), &work_pp_trig); //callback function upon clicked action, PARAM (final): pass address of data
+        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(working_play_pause_btn_clicked), &timerUi); //callback function upon clicked action, PARAM (final): pass address of data (single static struct variable)
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_working"));
-        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(working_reset_btn_clicked), &work_reset_trig);
+        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(working_reset_btn_clicked), &timerUi);
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_working"));
         status_flag = reset_timer(timerUi) ? true : false;
         break;
@@ -106,9 +102,9 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
         timerUi->is_playing = false;
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_resting"));
         timerUi->play_pause_button = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_resting"));
-        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(resting_play_pause_btn_clicked), &rest_pp_trig);
+        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(resting_play_pause_btn_clicked), &timerUi);
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_resting"));
-        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(resting_reset_btn_clicked), &rest_reset_trig);
+        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(resting_reset_btn_clicked), &timerUi);
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_resting"));
         status_flag = reset_timer(timerUi) ? true : false;
         break;
@@ -148,7 +144,8 @@ working_play_pause_btn_clicked(GtkWidget *widget,
                                gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    g_print("Value of btn: %d \n", WORK_PLAY_PAUSE_BTN);
+    struct TimerUI *timerUI_ptr = data;
+    g_print("Value of timerType: %d \n", timerUI_ptr->timerType);
 }
 
 static void
@@ -156,7 +153,8 @@ working_reset_btn_clicked(GtkWidget *widget,
                           gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    g_print("Value of btn: %d \n", WORK_RESET_BTN);
+    struct TimerUI *timerUI_ptr = data;
+    g_print("Value of timerType: %d \n", timerUI_ptr->timerType);
 }
 
 static void
@@ -164,7 +162,8 @@ resting_play_pause_btn_clicked(GtkWidget *widget,
                                gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    g_print("Value of btn: %d \n", REST_PLAY_PAUSE_BTN);
+    struct TimerUI *timerUI_ptr = data;
+    g_print("Value of timerTypet: %d \n", timerUI_ptr->timerType);
 }
 
 static void
@@ -172,7 +171,8 @@ resting_reset_btn_clicked(GtkWidget *widget,
                           gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    g_print("Value of btn: %d \n", REST_RESET_BTN);
+    struct TimerUI *timerUI_ptr = data;
+    g_print("Value of timerType: %d \n", timerUI_ptr->timerType);
 }
 
 //func to link res in code i.e g resource
