@@ -4,11 +4,15 @@
 /*DEFINES*/
 #define WORK 0
 #define REST 1
+#define MINUTE_SECONDS 60
 /*Defines for button ID*/
-#define WORK_PLAY_PAUSE_BTN 0
-#define WORK_RESET_BTN 1
-#define REST_PLAY_PAUSE_BTN 2
-#define REST_RESET_BTN 3
+typedef enum
+{
+    WORK_PLAY_PAUSE_BTN = 0,
+    WORK_RESET_BTN,
+    REST_PLAY_PAUSE_BTN,
+    REST_RESET_BTN
+} button_id_Enum;
 
 /*Structure*/
 struct TimerUI
@@ -20,12 +24,16 @@ struct TimerUI
     GtkProgressBar *pbar;
 
     uint8_t timerType;
-    int minutes;
-    int seconds;
+    bool is_playing;
+    unsigned int minutes;
+    unsigned int seconds;
 };
 
 /*Function Prototypes*/
-static void button_clicked(GtkWidget *widget, gpointer data);
+static void working_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
+static void working_reset_btn_clicked(GtkWidget *widget, gpointer data);
+static void resting_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
+static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
 
@@ -75,7 +83,6 @@ int main(int argc,
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType_data)
 {
     bool status_flag = true;
-    gdouble pbar_init = 0.0;
     static uint8_t work_pp_trig = WORK_PLAY_PAUSE_BTN;
     static uint8_t work_reset_trig = WORK_RESET_BTN;
     static uint8_t rest_pp_trig = REST_PLAY_PAUSE_BTN;
@@ -85,26 +92,24 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
     {
     case WORK:
         timerUi->timerType = WORK;
+        timerUi->is_playing = false; //start initial at pause state
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_working"));
-        /*SET INITIAL VAL OF WORKING TIMER LABEL*/
         timerUi->play_pause_button = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_working"));
-        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(button_clicked), &work_pp_trig); //callback function upon clicked action, PARAM (final): pass address of data
+        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(working_play_pause_btn_clicked), &work_pp_trig); //callback function upon clicked action, PARAM (final): pass address of data
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_working"));
-        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(button_clicked), &work_reset_trig);
+        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(working_reset_btn_clicked), &work_reset_trig);
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_working"));
-        gtk_progress_bar_set_fraction(timerUi->pbar, pbar_init);
         status_flag = reset_timer(timerUi) ? true : false;
         break;
     case REST:
         timerUi->timerType = REST;
+        timerUi->is_playing = false;
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_resting"));
-        /*SET INITIAL VAL OF WORKING TIMER LABEL*/
         timerUi->play_pause_button = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_resting"));
-        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(button_clicked), &rest_pp_trig);
+        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(resting_play_pause_btn_clicked), &rest_pp_trig);
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_resting"));
-        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(button_clicked), &rest_reset_trig);
+        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(resting_reset_btn_clicked), &rest_reset_trig);
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_resting"));
-        gtk_progress_bar_set_fraction(timerUi->pbar, pbar_init);
         status_flag = reset_timer(timerUi) ? true : false;
         break;
     default:
@@ -116,12 +121,14 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
 bool reset_timer(struct TimerUI *timerUi)
 {
     bool status_flag = true;
+    gdouble pbar_init = 0.0;
     switch (timerUi->timerType)
     {
     case WORK:
         timerUi->minutes = 25;
         timerUi->seconds = 0;
         gtk_label_set_text(timerUi->timeKeeper_label, "25:00");
+
         break;
     case REST:
         timerUi->minutes = 5;
@@ -131,18 +138,41 @@ bool reset_timer(struct TimerUI *timerUi)
     default:
         status_flag = false;
     }
+    gtk_progress_bar_set_fraction(timerUi->pbar, pbar_init);
     return status_flag;
 }
 
 /*sends activate signal upon function call g_application_run(), behave like virtual function that application responds to*/
 static void
-button_clicked(GtkWidget *widget,
-               gpointer data)
+working_play_pause_btn_clicked(GtkWidget *widget,
+                               gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    g_print("Hello World, Value of btn: %d \n", *(uint8_t *)data);
-    //gtk_label_set_text(myLabel, "Helloooooooooo!");
+    g_print("Value of btn: %d \n", WORK_PLAY_PAUSE_BTN);
 }
 
-//func to init display: set pbar to 0
+static void
+working_reset_btn_clicked(GtkWidget *widget,
+                          gpointer data)
+{
+    (void)widget; //To get rid of compiler warning
+    g_print("Value of btn: %d \n", WORK_RESET_BTN);
+}
+
+static void
+resting_play_pause_btn_clicked(GtkWidget *widget,
+                               gpointer data)
+{
+    (void)widget; //To get rid of compiler warning
+    g_print("Value of btn: %d \n", REST_PLAY_PAUSE_BTN);
+}
+
+static void
+resting_reset_btn_clicked(GtkWidget *widget,
+                          gpointer data)
+{
+    (void)widget; //To get rid of compiler warning
+    g_print("Value of btn: %d \n", REST_RESET_BTN);
+}
+
 //func to link res in code i.e g resource
