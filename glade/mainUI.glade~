@@ -39,7 +39,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkProgressBar" id="pbar_rest">
+                  <object class="GtkProgressBar" id="pbar_resting">
                     <property name="width-request">250</property>
                     <property name="height-request">80</property>
                     <property name="visible">True</property>
@@ -278,7 +278,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label_rest">
+                  <object class="GtkLabel" id="label_resting">
                     <property name="width-request">100</property>
                     <property name="height-request">80</property>
                     <property name="visible">True</property>
