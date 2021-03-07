@@ -5,7 +5,12 @@
 /*DEFINES*/
 #define WORK 0
 #define REST 1
-#define MINUTE_SECONDS 60
+#define TIME_FORMAT_STRING_LEN 6
+#define MINUTE_SECONDS 59
+#define WORKING_INIT_TIME_MINS 1
+#define WORKING_INIT_TIME_SECS 0
+#define RESTING_INIT_TIME_MINS 5
+#define RESTING_INIT_TIME_SECS 0
 /*Defines for button ID*/
 typedef enum
 {
@@ -27,8 +32,8 @@ struct TimerUI
     uint8_t timerType;
     bool is_playing;
     guint timer_tag;
-    unsigned int minutes;
-    unsigned int seconds;
+    int minutes;
+    int seconds;
 };
 
 /*Function Prototypes*/
@@ -39,7 +44,7 @@ static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
-gboolean timer_handler(struct TimerUI *timerUi);
+gboolean working_timer_handler(struct TimerUI *timerUi);
 
 int main(int argc,
          char *argv[])
@@ -125,22 +130,25 @@ bool reset_timer(struct TimerUI *timerUi)
 {
     bool status_flag = true;
     gdouble pbar_init = 0.0;
+    char formattedTime[TIME_FORMAT_STRING_LEN];
+
     switch (timerUi->timerType)
     {
     case WORK:
-        timerUi->minutes = 25;
-        timerUi->seconds = 0;
-        gtk_label_set_text(timerUi->timeKeeper_label, "25:00");
+        timerUi->minutes = WORKING_INIT_TIME_MINS;
+        timerUi->seconds = WORKING_INIT_TIME_SECS;
 
         break;
     case REST:
-        timerUi->minutes = 5;
-        timerUi->seconds = 0;
-        gtk_label_set_text(timerUi->timeKeeper_label, "5:00");
+        timerUi->minutes = RESTING_INIT_TIME_MINS;
+        timerUi->seconds = RESTING_INIT_TIME_SECS;
+
         break;
     default:
         status_flag = false;
     }
+    snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUi->minutes, timerUi->seconds);
+    gtk_label_set_text(timerUi->timeKeeper_label, formattedTime);
     gtk_progress_bar_set_fraction(timerUi->pbar, pbar_init);
     return status_flag;
 }
@@ -156,14 +164,16 @@ working_play_pause_btn_clicked(GtkWidget *widget,
     {
         timerUI_ptr->is_playing = true;
         //init tick handler (1 second timer)
-        timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
+        timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)working_timer_handler, timerUI_ptr); //store tag to destroy timeout()
+        //update image icon
         g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
     }
     else
     {
         timerUI_ptr->is_playing = false;
         g_source_remove(timerUI_ptr->timer_tag);
-        g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
+        //update image icon
+        g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
     }
 }
 
@@ -203,16 +213,27 @@ void delete_allocation(struct TimerUI *ptr, gpointer data)
 }
 
 // handler for the 1 second timer tick
-gboolean timer_handler(struct TimerUI *timerUi)
+gboolean working_timer_handler(struct TimerUI *timerUi)
 {
-    GDateTime *date_time;
-    gchar *dt_format;
-
-    date_time = g_date_time_new_now_local();                             // get local time
-    dt_format = g_date_time_format(date_time, "%H:%M:%S");               // 24hr time format
-    gtk_label_set_text(GTK_LABEL(timerUi->timeKeeper_label), dt_format); // update label
-    g_free(dt_format);
-
+    char formattedTime[TIME_FORMAT_STRING_LEN];
+    timerUi->seconds--;
+    if (timerUi->minutes > 0 && timerUi->seconds < 0)
+    {
+        timerUi->minutes--;
+        timerUi->seconds = MINUTE_SECONDS;
+        //UPDATE PBAR
+    }
+    else if (timerUi->minutes <= 0 && timerUi->seconds < 0)
+    {
+        //PLAY TIMER UP SOUND
+        g_source_remove(timerUi->timer_tag);
+        timerUi->is_playing = false;
+        //UPDATE ICON
+        timerUi->minutes = 0;
+        timerUi->seconds = 0;
+    }
+    snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUi->minutes, timerUi->seconds);
+    gtk_label_set_text(timerUi->timeKeeper_label, formattedTime);
     return TRUE;
 }
 //func to link res in code i.e g resource
