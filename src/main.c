@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 /*DEFINES*/
 #define WORK 0
@@ -36,6 +37,7 @@ static void resting_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
+void delete_allocation(struct TimerUI *ptr, gpointer data);
 
 int main(int argc,
          char *argv[])
@@ -45,7 +47,8 @@ int main(int argc,
     GtkBuilder *builder;
     GError *error = NULL;
 
-    struct TimerUI work_TimerUI, rest_TimerUI;
+    //alocation heap
+    struct TimerUI *work_TimerUI = malloc(sizeof *work_TimerUI), *rest_TimerUI = malloc(sizeof *rest_TimerUI);
 
     gtk_init(&argc, &argv);
 
@@ -59,7 +62,7 @@ int main(int argc,
         return 1;
     }
 
-    if (!init_timer_interface(builder, &work_TimerUI, WORK) || !init_timer_interface(builder, &rest_TimerUI, REST))
+    if (!init_timer_interface(builder, work_TimerUI, WORK) || !init_timer_interface(builder, rest_TimerUI, REST))
     {
         g_printerr("Error loading init_timer_interface()\n");
         return 1;
@@ -71,6 +74,8 @@ int main(int argc,
     window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
     gtk_window_set_title(GTK_WINDOW(window), "Pomodoroooo!");             //Set title of program
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
+    g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
+    g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);
 
     gtk_builder_connect_signals(builder, NULL);
     gtk_widget_show_all(window);
@@ -91,9 +96,9 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
         timerUi->is_playing = false; //start initial at pause state
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_working"));
         timerUi->play_pause_button = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_working"));
-        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(working_play_pause_btn_clicked), &timerUi); //callback function upon clicked action, PARAM (final): pass address of data (single static struct variable)
+        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(working_play_pause_btn_clicked), timerUi); //callback function upon clicked action, PARAM (final): pass address of data (single static struct variable)
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_working"));
-        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(working_reset_btn_clicked), &timerUi);
+        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(working_reset_btn_clicked), timerUi);
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_working"));
         status_flag = reset_timer(timerUi) ? true : false;
         break;
@@ -102,9 +107,9 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
         timerUi->is_playing = false;
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_resting"));
         timerUi->play_pause_button = GTK_BUTTON(gtk_builder_get_object(builder, "play_btn_resting"));
-        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(resting_play_pause_btn_clicked), &timerUi);
+        g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(resting_play_pause_btn_clicked), timerUi);
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_resting"));
-        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(resting_reset_btn_clicked), &timerUi);
+        g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(resting_reset_btn_clicked), timerUi);
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_resting"));
         status_flag = reset_timer(timerUi) ? true : false;
         break;
@@ -145,7 +150,7 @@ working_play_pause_btn_clicked(GtkWidget *widget,
 {
     (void)widget; //To get rid of compiler warning
     struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerType: %d \n", timerUI_ptr->timerType);
+    g_print("Value of timerType: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
 }
 
 static void
@@ -154,7 +159,7 @@ working_reset_btn_clicked(GtkWidget *widget,
 {
     (void)widget; //To get rid of compiler warning
     struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerType: %d \n", timerUI_ptr->timerType);
+    g_print("Value of timerType: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
 }
 
 static void
@@ -163,7 +168,7 @@ resting_play_pause_btn_clicked(GtkWidget *widget,
 {
     (void)widget; //To get rid of compiler warning
     struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerTypet: %d \n", timerUI_ptr->timerType);
+    g_print("Value of timerTypet: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
 }
 
 static void
@@ -172,7 +177,15 @@ resting_reset_btn_clicked(GtkWidget *widget,
 {
     (void)widget; //To get rid of compiler warning
     struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerType: %d \n", timerUI_ptr->timerType);
+    g_print("Value of timerType: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
+}
+
+/*Free malloc()*/
+void delete_allocation(struct TimerUI *ptr, gpointer data)
+{
+    (void)data; //To get rid of compiler warning
+    g_print("Memory allocation freed %u! \n", ptr->timerType);
+    g_free(ptr);
 }
 
 //func to link res in code i.e g resource
