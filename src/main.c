@@ -26,6 +26,7 @@ struct TimerUI
 
     uint8_t timerType;
     bool is_playing;
+    guint timer_tag;
     unsigned int minutes;
     unsigned int seconds;
 };
@@ -38,6 +39,7 @@ static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
+gboolean timer_handler(struct TimerUI *timerUi);
 
 int main(int argc,
          char *argv[])
@@ -150,7 +152,19 @@ working_play_pause_btn_clicked(GtkWidget *widget,
 {
     (void)widget; //To get rid of compiler warning
     struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerType: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
+    if (timerUI_ptr->is_playing != true)
+    {
+        timerUI_ptr->is_playing = true;
+        //init tick handler (1 second timer)
+        timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
+        g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
+    }
+    else
+    {
+        timerUI_ptr->is_playing = false;
+        g_source_remove(timerUI_ptr->timer_tag);
+        g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
+    }
 }
 
 static void
@@ -188,4 +202,17 @@ void delete_allocation(struct TimerUI *ptr, gpointer data)
     g_free(ptr);
 }
 
+// handler for the 1 second timer tick
+gboolean timer_handler(struct TimerUI *timerUi)
+{
+    GDateTime *date_time;
+    gchar *dt_format;
+
+    date_time = g_date_time_new_now_local();                             // get local time
+    dt_format = g_date_time_format(date_time, "%H:%M:%S");               // 24hr time format
+    gtk_label_set_text(GTK_LABEL(timerUi->timeKeeper_label), dt_format); // update label
+    g_free(dt_format);
+
+    return TRUE;
+}
 //func to link res in code i.e g resource
