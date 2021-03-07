@@ -183,7 +183,14 @@ working_reset_btn_clicked(GtkWidget *widget,
 {
     (void)widget; //To get rid of compiler warning
     struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerType: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
+    if (timerUI_ptr->is_playing != true)
+    {
+        char formattedTime[TIME_FORMAT_STRING_LEN];
+        timerUI_ptr->minutes = WORKING_INIT_TIME_MINS;
+        timerUI_ptr->seconds = WORKING_INIT_TIME_SECS;
+        snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUI_ptr->minutes, timerUI_ptr->seconds);
+        gtk_label_set_text(timerUI_ptr->timeKeeper_label, formattedTime);
+    }
 }
 
 static void
