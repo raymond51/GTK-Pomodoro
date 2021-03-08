@@ -1,8 +1,6 @@
 #include <gtk/gtk.h>
-#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 /*DEFINES*/
 #define WORK 0
@@ -29,6 +27,7 @@ struct TimerUI
     GtkLabel *timeKeeper_label;
     GtkButton *play_pause_button;
     GtkButton *reset_button;
+    GtkImage *play_pause_btn_image;
     GtkProgressBar *pbar;
 
     uint8_t timerType;
@@ -112,6 +111,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
         g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(working_play_pause_btn_clicked), timerUi); //callback function upon clicked action, PARAM (final): pass address of data (single static struct variable)
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_working"));
         g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(working_reset_btn_clicked), timerUi);
+        timerUi->play_pause_btn_image = GTK_IMAGE(gtk_builder_get_object(builder, "working_play_btn_image"));
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_working"));
         status_flag = reset_timer(timerUi) ? true : false;
         break;
@@ -123,6 +123,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
         g_signal_connect(timerUi->play_pause_button, "clicked", G_CALLBACK(resting_play_pause_btn_clicked), timerUi);
         timerUi->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_btn_resting"));
         g_signal_connect(timerUi->reset_button, "clicked", G_CALLBACK(resting_reset_btn_clicked), timerUi);
+        timerUi->play_pause_btn_image = GTK_IMAGE(gtk_builder_get_object(builder, "resting_play_btn_image"));
         timerUi->pbar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "pbar_resting"));
         status_flag = reset_timer(timerUi) ? true : false;
         break;
@@ -210,14 +211,14 @@ void play_pause_action(gpointer data)
         //init tick handler (1 second timer)
         timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
 
-        //update image icon
+        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/res/icon-pause.png");
         g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
     }
     else
     {
         timerUI_ptr->is_playing = false;
         g_source_remove(timerUI_ptr->timer_tag);
-        //update image icon
+        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/res/icon-play.png");
         g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
     }
 }
@@ -265,7 +266,8 @@ void format_Countdown(struct TimerUI *timerUi)
         //PLAY TIMER UP SOUND
         g_source_remove(timerUi->timer_tag);
         timerUi->is_playing = false;
-        //UPDATE ICON
+        gtk_image_set_from_file(timerUi->play_pause_btn_image, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/res/icon-play.png");
+
         timerUi->minutes = 0;
         timerUi->seconds = 0;
     }

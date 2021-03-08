@@ -84,7 +84,7 @@
                     <property name="receives-default">True</property>
                     <property name="always-show-image">True</property>
                     <child>
-                      <object class="GtkImage">
+                      <object class="GtkImage" id="working_play_btn_image">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="pixbuf">..\res\icon-play.png</property>
