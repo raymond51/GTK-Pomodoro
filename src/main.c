@@ -1,6 +1,8 @@
 #include <gtk/gtk.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 /*DEFINES*/
 #define WORK 0
@@ -45,6 +47,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t 
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
 void play_pause_action(gpointer data);
+void reset_action(gpointer data);
 gboolean timer_handler(struct TimerUI *timerUi);
 void format_Countdown(struct TimerUI *timerUi);
 
@@ -63,6 +66,7 @@ int main(int argc,
 
     /* Construct a GtkBuilder instance and load our UI description */
     builder = gtk_builder_new();
+
     //using absolute path for now
     if (gtk_builder_add_from_file(builder, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/glade/mainUI.glade", &error) == 0)
     {
@@ -169,15 +173,7 @@ working_reset_btn_clicked(GtkWidget *widget,
                           gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    struct TimerUI *timerUI_ptr = data;
-    if (timerUI_ptr->is_playing != true)
-    {
-        char formattedTime[TIME_FORMAT_STRING_LEN];
-        timerUI_ptr->minutes = WORKING_INIT_TIME_MINS;
-        timerUI_ptr->seconds = WORKING_INIT_TIME_SECS;
-        snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUI_ptr->minutes, timerUI_ptr->seconds);
-        gtk_label_set_text(timerUI_ptr->timeKeeper_label, formattedTime);
-    }
+    reset_action(data);
 }
 
 static void
@@ -193,8 +189,7 @@ resting_reset_btn_clicked(GtkWidget *widget,
                           gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerType: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
+    reset_action(data);
 }
 
 /*Free malloc()*/
@@ -224,6 +219,27 @@ void play_pause_action(gpointer data)
         g_source_remove(timerUI_ptr->timer_tag);
         //update image icon
         g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
+    }
+}
+
+void reset_action(gpointer data)
+{
+    struct TimerUI *timerUI_ptr = data;
+    if (timerUI_ptr->is_playing != true)
+    {
+        char formattedTime[TIME_FORMAT_STRING_LEN];
+        if (timerUI_ptr->timerType == WORK)
+        {
+            timerUI_ptr->minutes = WORKING_INIT_TIME_MINS;
+            timerUI_ptr->seconds = WORKING_INIT_TIME_SECS;
+        }
+        else
+        {
+            timerUI_ptr->minutes = RESTING_INIT_TIME_MINS;
+            timerUI_ptr->seconds = RESTING_INIT_TIME_SECS;
+        }
+        snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUI_ptr->minutes, timerUI_ptr->seconds);
+        gtk_label_set_text(timerUI_ptr->timeKeeper_label, formattedTime);
     }
 }
 
