@@ -49,6 +49,7 @@ void play_pause_action(gpointer data);
 void reset_action(gpointer data);
 gboolean timer_handler(struct TimerUI *timerUi);
 void format_Countdown(struct TimerUI *timerUi);
+void pbar_update(struct TimerUI *timerUi);
 
 int main(int argc,
          char *argv[])
@@ -255,11 +256,12 @@ void format_Countdown(struct TimerUI *timerUi)
 {
     char formattedTime[TIME_FORMAT_STRING_LEN];
     timerUi->seconds--;
+    pbar_update(timerUi);
+
     if (timerUi->minutes > 0 && timerUi->seconds < 0)
     {
         timerUi->minutes--;
         timerUi->seconds = MINUTE_SECONDS;
-        //UPDATE PBAR
     }
     else if (timerUi->minutes <= 0 && timerUi->seconds < 0)
     {
@@ -274,4 +276,10 @@ void format_Countdown(struct TimerUI *timerUi)
     snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUi->minutes, timerUi->seconds);
     gtk_label_set_text(timerUi->timeKeeper_label, formattedTime);
 }
-//func to link res in code i.e g resource
+
+void pbar_update(struct TimerUI *timerUi)
+{
+    float total_time = (timerUi->timerType == WORK) ? WORKING_INIT_TIME_MINS * MINUTE_SECONDS + WORKING_INIT_TIME_SECS : RESTING_INIT_TIME_MINS * MINUTE_SECONDS + RESTING_INIT_TIME_SECS;
+    float ratio = (total_time - ((float)timerUi->minutes * MINUTE_SECONDS + (float)timerUi->seconds)) / total_time;
+    gtk_progress_bar_set_fraction(timerUi->pbar, ratio);
+}
