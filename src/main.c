@@ -44,7 +44,9 @@ static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
-gboolean working_timer_handler(struct TimerUI *timerUi);
+void play_pause_action(gpointer data);
+gboolean timer_handler(struct TimerUI *timerUi);
+void format_Countdown(struct TimerUI *timerUi);
 
 int main(int argc,
          char *argv[])
@@ -159,22 +161,7 @@ working_play_pause_btn_clicked(GtkWidget *widget,
                                gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    struct TimerUI *timerUI_ptr = data;
-    if (timerUI_ptr->is_playing != true)
-    {
-        timerUI_ptr->is_playing = true;
-        //init tick handler (1 second timer)
-        timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)working_timer_handler, timerUI_ptr); //store tag to destroy timeout()
-        //update image icon
-        g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
-    }
-    else
-    {
-        timerUI_ptr->is_playing = false;
-        g_source_remove(timerUI_ptr->timer_tag);
-        //update image icon
-        g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
-    }
+    play_pause_action(data);
 }
 
 static void
@@ -198,8 +185,7 @@ resting_play_pause_btn_clicked(GtkWidget *widget,
                                gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    struct TimerUI *timerUI_ptr = data;
-    g_print("Value of timerTypet: %s \n", gtk_label_get_text(timerUI_ptr->timeKeeper_label));
+    play_pause_action(data);
 }
 
 static void
@@ -219,8 +205,36 @@ void delete_allocation(struct TimerUI *ptr, gpointer data)
     g_free(ptr);
 }
 
+void play_pause_action(gpointer data)
+{
+
+    struct TimerUI *timerUI_ptr = data;
+    if (timerUI_ptr->is_playing != true)
+    {
+        timerUI_ptr->is_playing = true;
+        //init tick handler (1 second timer)
+        timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
+
+        //update image icon
+        g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
+    }
+    else
+    {
+        timerUI_ptr->is_playing = false;
+        g_source_remove(timerUI_ptr->timer_tag);
+        //update image icon
+        g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
+    }
+}
+
 // handler for the 1 second timer tick
-gboolean working_timer_handler(struct TimerUI *timerUi)
+gboolean timer_handler(struct TimerUI *timerUi)
+{
+    format_Countdown(timerUi);
+    return TRUE;
+}
+
+void format_Countdown(struct TimerUI *timerUi)
 {
     char formattedTime[TIME_FORMAT_STRING_LEN];
     timerUi->seconds--;
@@ -241,6 +255,5 @@ gboolean working_timer_handler(struct TimerUI *timerUi)
     }
     snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUi->minutes, timerUi->seconds);
     gtk_label_set_text(timerUi->timeKeeper_label, formattedTime);
-    return TRUE;
 }
 //func to link res in code i.e g resource
