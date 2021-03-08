@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 /*DEFINES*/
+#define DEBUG_PRINT //ENABLE debug print messages by uncommenting
 #define WORK 0
 #define REST 1
 #define TIME_FORMAT_STRING_LEN 6
@@ -42,6 +43,8 @@ static void working_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 static void working_reset_btn_clicked(GtkWidget *widget, gpointer data);
 static void resting_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
+static void counter_up_btn_clicked(GtkWidget *widget, gpointer data);
+static void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
@@ -57,6 +60,9 @@ int main(int argc,
     /*Variables*/
     GtkWidget *window; //GTK window
     GtkBuilder *builder;
+    GtkButton *counter_up_btn;
+    GtkButton *counter_down_btn;
+    FILE *fPointer;
     GError *error = NULL;
 
     //alocation heap
@@ -70,18 +76,31 @@ int main(int argc,
     //using absolute path for now
     if (gtk_builder_add_from_file(builder, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/glade/mainUI.glade", &error) == 0)
     {
+#ifdef DEBUG_PRINT
         g_printerr("Error loading file: %s\n", error->message);
+#endif
+
         g_clear_error(&error);
         return 1;
     }
 
     if (!init_timer_interface(builder, work_TimerUI, WORK) || !init_timer_interface(builder, rest_TimerUI, REST))
     {
+#ifdef DEBUG_PRINT
         g_printerr("Error loading init_timer_interface()\n");
+#endif
         return 1;
     }
 
     /*INIT DAILY COUNTER FUNC()*/
+    counter_up_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_up_btn"));
+    counter_down_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_down_btn"));
+    //g_signal_connect(counter_up_btn, "clicked", G_CALLBACK(counter_up_btn_clicked), NULL);
+    //g_signal_connect(counter_down_btn, "clicked", G_CALLBACK(counter_down_btn_clicked), NULL);
+
+    // fPointer = fopen("record.txt", "r+");
+    // fprintf(fPointer, "Hi!\n");
+    // fclose(fPointer);
 
     /* Connect signal handlers to the constructed widgets. */
     window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
@@ -89,6 +108,7 @@ int main(int argc,
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);
+    /*CALL DESTROY FOR FILE POINTER*/
 
     gtk_builder_connect_signals(builder, NULL);
     gtk_widget_show_all(window);
@@ -194,11 +214,29 @@ resting_reset_btn_clicked(GtkWidget *widget,
     reset_action(data);
 }
 
+static void
+counter_up_btn_clicked(GtkWidget *widget,
+                       gpointer data)
+{
+    (void)widget; //To get rid of compiler warning
+    (void)data;
+}
+
+static void
+counter_down_btn_clicked(GtkWidget *widget,
+                         gpointer data)
+{
+    (void)widget; //To get rid of compiler warning
+    (void)data;
+}
+
 /*Free malloc()*/
 void delete_allocation(struct TimerUI *ptr, gpointer data)
 {
     (void)data; //To get rid of compiler warning
+#ifdef DEBUG_PRINT
     g_print("Memory allocation freed %u! \n", ptr->timerType);
+#endif
     g_free(ptr);
 }
 
@@ -213,14 +251,18 @@ void play_pause_action(gpointer data)
         timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
 
         gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/res/icon-pause.png");
+#ifdef DEBUG_PRINT
         g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
+#endif
     }
     else
     {
         timerUI_ptr->is_playing = false;
         g_source_remove(timerUI_ptr->timer_tag);
         gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/res/icon-play.png");
+#ifdef DEBUG_PRINT
         g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
+#endif
     }
 }
 
