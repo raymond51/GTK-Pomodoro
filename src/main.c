@@ -1,9 +1,11 @@
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 /*DEFINES*/
 #define DEBUG_PRINT //ENABLE debug print messages by uncommenting
+#define ONE_KB 1024
 #define WORK 0
 #define REST 1
 #define TIME_FORMAT_STRING_LEN 6
@@ -39,6 +41,7 @@ struct TimerUI
 };
 
 /*Function Prototypes*/
+const char *prg_path(char *file_path, const char *file_loc);
 static void working_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 static void working_reset_btn_clicked(GtkWidget *widget, gpointer data);
 static void resting_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
@@ -48,6 +51,7 @@ static void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType); //return true if success
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
+void delete_file_path_allocation(char *file_path);
 void play_pause_action(gpointer data);
 void reset_action(gpointer data);
 gboolean timer_handler(struct TimerUI *timerUi);
@@ -60,6 +64,7 @@ int main(int argc,
     /*Variables*/
     GtkWidget *window; //GTK window
     GtkBuilder *builder;
+    char *file_path = malloc(2 * ONE_KB);
     GtkButton *counter_up_btn;
     GtkButton *counter_down_btn;
     FILE *fPointer;
@@ -73,8 +78,7 @@ int main(int argc,
     /* Construct a GtkBuilder instance and load our UI description */
     builder = gtk_builder_new();
 
-    //using absolute path for now
-    if (gtk_builder_add_from_file(builder, "C:/Users/raymo/Documents/VS-code/C projects/GTK/GTK-pomodoro/glade/mainUI.glade", &error) == 0)
+    if (gtk_builder_add_from_file(builder, prg_path(file_path, "/GTK-pomodoro/glade/mainUI.glade"), &error) == 0)
     {
 #ifdef DEBUG_PRINT
         g_printerr("Error loading file: %s\n", error->message);
@@ -108,6 +112,7 @@ int main(int argc,
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);
+    g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_file_path_allocation), file_path);
     /*CALL DESTROY FOR FILE POINTER*/
 
     gtk_builder_connect_signals(builder, NULL);
@@ -116,6 +121,33 @@ int main(int argc,
     g_object_unref(builder); //free object in memory
 
     return 0;
+}
+
+/*Func to pass correct formatted file dir to glade file for builder*/
+const char *prg_path(char *file_path, const char *file_loc)
+{
+    char absPath[ONE_KB];
+    char concat_str[2 * ONE_KB];
+    char old_char = '\\';
+    char new_char = '/';
+
+    getcwd(absPath, sizeof(absPath)); //equiv to pwd - to grab cur file path location
+    g_print(" Current working dir: %s\n", absPath);
+    for (int i = 0; i < strlen(absPath); i++)
+    {
+        if (absPath[i] == old_char)
+        {
+            absPath[i] = new_char;
+        }
+    }
+
+    snprintf(concat_str, sizeof(concat_str), "%s%s", absPath, file_loc);
+    strncpy(file_path, concat_str, 2 * ONE_KB); //safe copy to prevent buffer overflow
+
+#ifdef DEBUG_PRINT
+    g_print("Combined Current working dir: %s\n", concat_str);
+#endif
+    return file_path;
 }
 
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, uint8_t timerType_data)
@@ -238,6 +270,13 @@ void delete_allocation(struct TimerUI *ptr, gpointer data)
     g_print("Memory allocation freed %u! \n", ptr->timerType);
 #endif
     g_free(ptr);
+}
+void delete_file_path_allocation(char *file_path)
+{
+    free(file_path);
+#ifdef DEBUG_PRINT
+    g_print("Memory allocation for file path pointer freed! \n");
+#endif
 }
 
 void play_pause_action(gpointer data)
