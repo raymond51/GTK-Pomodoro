@@ -10,6 +10,7 @@
 #define REST 1
 #define TIME_FORMAT_STRING_LEN 6
 #define MINUTE_SECONDS 59
+#define PBAR_INIT 0.0
 #define WORKING_INIT_TIME_MINS 1
 #define WORKING_INIT_TIME_SECS 0
 #define RESTING_INIT_TIME_MINS 5
@@ -79,7 +80,7 @@ int main(int argc,
     /* Construct a GtkBuilder instance and load our UI description */
     builder = gtk_builder_new();
 
-    if (gtk_builder_add_from_file(builder, prg_path(file_path, "/GTK-pomodoro/glade/mainUI.glade"), &error) == 0)
+    if (gtk_builder_add_from_file(builder, prg_path(file_path, "/GTK-Pomodoro/glade/mainUI.glade"), &error) == 0)
     {
 #ifdef DEBUG_PRINT
         g_printerr("Error loading file: %s\n", error->message);
@@ -191,7 +192,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *fi
 bool reset_timer(struct TimerUI *timerUi)
 {
     bool status_flag = true;
-    gdouble pbar_init = 0.0;
+    gdouble pbar_init = PBAR_INIT;
     char formattedTime[TIME_FORMAT_STRING_LEN];
 
     switch (timerUi->timerType)
@@ -290,8 +291,7 @@ void play_pause_action(gpointer data)
         timerUI_ptr->is_playing = true;
         //init tick handler (1 second timer)
         timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
-
-        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, "/GTK-pomodoro/res/icon-pause.png"));
+        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, "/GTK-Pomodoro/res/icon-pause.png"));
 #ifdef DEBUG_PRINT
         g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
 #endif
@@ -300,8 +300,7 @@ void play_pause_action(gpointer data)
     {
         timerUI_ptr->is_playing = false;
         g_source_remove(timerUI_ptr->timer_tag);
-
-        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, "/GTK-pomodoro/res/icon-play.png"));
+        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, "/GTK-Pomodoro/res/icon-play.png"));
 #ifdef DEBUG_PRINT
         g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
 #endif
@@ -352,7 +351,7 @@ void format_Countdown(struct TimerUI *timerUi)
         //PLAY TIMER UP SOUND
         g_source_remove(timerUi->timer_tag);
         timerUi->is_playing = false;
-        gtk_image_set_from_file(timerUi->play_pause_btn_image, prg_path(timerUi->file_path_loc, "/GTK-pomodoro/res/icon-play.png"));
+        gtk_image_set_from_file(timerUi->play_pause_btn_image, prg_path(timerUi->file_path_loc, "/GTK-Pomodoro/res/icon-play.png"));
 
         timerUi->minutes = 0;
         timerUi->seconds = 0;
