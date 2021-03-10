@@ -313,6 +313,7 @@ void reset_action(gpointer data)
     if (timerUI_ptr->is_playing != true)
     {
         char formattedTime[TIME_FORMAT_STRING_LEN];
+        gdouble pbar_init = PBAR_INIT;
         if (timerUI_ptr->timerType == WORK)
         {
             timerUI_ptr->minutes = WORKING_INIT_TIME_MINS;
@@ -323,6 +324,7 @@ void reset_action(gpointer data)
             timerUI_ptr->minutes = RESTING_INIT_TIME_MINS;
             timerUI_ptr->seconds = RESTING_INIT_TIME_SECS;
         }
+        gtk_progress_bar_set_fraction(timerUI_ptr->pbar, pbar_init);
         snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUI_ptr->minutes, timerUI_ptr->seconds);
         gtk_label_set_text(timerUI_ptr->timeKeeper_label, formattedTime);
     }
