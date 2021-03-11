@@ -10,6 +10,7 @@
 #define TWEPOWEIGHT 256
 #define WORK 0
 #define REST 1
+#define COUNTER 2
 #define TIME_FORMAT_STRING_LEN 6
 #define MINUTE_SECONDS 59
 #define PBAR_INIT 0.0
@@ -37,7 +38,7 @@ struct TimerUI
     GtkImage *play_pause_btn_image;
     GtkProgressBar *pbar;
 
-    uint8_t timerType;
+    uint8_t Type;
     bool is_playing;
     char *file_path_loc;
     guint timer_tag;
@@ -47,6 +48,7 @@ struct TimerUI
 
 struct CounterUI
 {
+    uint8_t Type;
     gint day_today, month_today, year_today;
     gint day_Of_Week;
     int curr_counter;
@@ -66,6 +68,7 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr);
 bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr);
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
+void delete_allocation_counter(struct CounterUI *ptr, gpointer data);
 void delete_file_path_allocation(char *file_path);
 void play_pause_action(gpointer data);
 void reset_action(gpointer data);
@@ -133,7 +136,7 @@ int main(int argc,
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);
-    g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), counterUI_ptr);
+    g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation_counter), counterUI_ptr);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_file_path_allocation), file_path);
     /*CALL DESTROY FOR FILE POINTER*/
 
@@ -178,7 +181,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *fi
     switch (timerType)
     {
     case WORK:
-        timerUi->timerType = WORK;
+        timerUi->Type = WORK;
         timerUi->file_path_loc = file_path;
         timerUi->is_playing = false; //start initial at pause state
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_working"));
@@ -191,7 +194,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *fi
         status_flag = reset_timer(timerUi) ? true : false;
         break;
     case REST:
-        timerUi->timerType = REST;
+        timerUi->Type = REST;
         timerUi->file_path_loc = file_path;
         timerUi->is_playing = false;
         timerUi->timeKeeper_label = GTK_LABEL(gtk_builder_get_object(builder, "label_resting"));
@@ -212,7 +215,7 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *fi
 bool init_tracking_counter(struct CounterUI *counterUI, FILE *fPointer_ptr)
 {
     bool status_flag = true;
-
+    counterUI->Type = COUNTER;
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
 
     if (fPointer_ptr)
@@ -316,7 +319,7 @@ bool reset_timer(struct TimerUI *timerUi)
     gdouble pbar_init = PBAR_INIT;
     char formattedTime[TIME_FORMAT_STRING_LEN];
 
-    switch (timerUi->timerType)
+    switch (timerUi->Type)
     {
     case WORK:
         timerUi->minutes = WORKING_INIT_TIME_MINS;
@@ -391,10 +394,20 @@ void delete_allocation(struct TimerUI *ptr, gpointer data)
 {
     (void)data; //To get rid of compiler warning
 #ifdef DEBUG_PRINT
-    g_print("Memory allocation freed %u! \n", ptr->timerType);
+    g_print("Memory allocation freed %u! \n", ptr->Type);
 #endif
     g_free(ptr);
 }
+
+void delete_allocation_counter(struct CounterUI *ptr, gpointer data)
+{
+    (void)data; //To get rid of compiler warning
+#ifdef DEBUG_PRINT
+    g_print("Memory allocation freed %u! \n", ptr->Type);
+#endif
+    g_free(ptr);
+}
+
 void delete_file_path_allocation(char *file_path)
 {
     free(file_path);
@@ -435,7 +448,7 @@ void reset_action(gpointer data)
     {
         char formattedTime[TIME_FORMAT_STRING_LEN];
         gdouble pbar_init = PBAR_INIT;
-        if (timerUI_ptr->timerType == WORK)
+        if (timerUI_ptr->Type == WORK)
         {
             timerUI_ptr->minutes = WORKING_INIT_TIME_MINS;
             timerUI_ptr->seconds = WORKING_INIT_TIME_SECS;
@@ -485,7 +498,7 @@ void format_Countdown(struct TimerUI *timerUi)
 
 void pbar_update(struct TimerUI *timerUi)
 {
-    float total_time = (timerUi->timerType == WORK) ? WORKING_INIT_TIME_MINS * MINUTE_SECONDS + WORKING_INIT_TIME_SECS : RESTING_INIT_TIME_MINS * MINUTE_SECONDS + RESTING_INIT_TIME_SECS;
+    float total_time = (timerUi->Type == WORK) ? WORKING_INIT_TIME_MINS * MINUTE_SECONDS + WORKING_INIT_TIME_SECS : RESTING_INIT_TIME_MINS * MINUTE_SECONDS + RESTING_INIT_TIME_SECS;
     float ratio = (total_time - ((float)timerUi->minutes * MINUTE_SECONDS + (float)timerUi->seconds)) / total_time;
     gtk_progress_bar_set_fraction(timerUi->pbar, ratio);
 }
