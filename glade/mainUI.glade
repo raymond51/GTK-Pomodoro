@@ -127,7 +127,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="counter_up_btn">
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -147,7 +147,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="counter_down_btn">
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>

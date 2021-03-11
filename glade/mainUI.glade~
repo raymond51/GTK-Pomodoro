@@ -87,7 +87,7 @@
                       <object class="GtkImage" id="working_play_btn_image">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">..\res\icon-play.png</property>
+                        <property name="pixbuf">../res/icon-play.png</property>
                         <property name="icon_size">6</property>
                       </object>
                     </child>
@@ -137,7 +137,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">..\res\icons-up.png</property>
+                        <property name="pixbuf">../res/icons-up.png</property>
                       </object>
                     </child>
                   </object>
@@ -157,7 +157,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">..\res\icons-down.png</property>
+                        <property name="pixbuf">../res/icons-down.png</property>
                       </object>
                     </child>
                   </object>
@@ -177,7 +177,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">..\res\icons-reset.png</property>
+                        <property name="pixbuf">../res/icons-reset.png</property>
                       </object>
                     </child>
                   </object>
@@ -197,7 +197,7 @@
                       <object class="GtkImage" id="resting_play_btn_image">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">..\res\icon-play.png</property>
+                        <property name="pixbuf">../res/icon-play.png</property>
                       </object>
                     </child>
                   </object>
@@ -217,7 +217,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="pixbuf">..\res\icons-reset.png</property>
+                        <property name="pixbuf">../res/icons-reset.png</property>
                       </object>
                     </child>
                   </object>
