@@ -405,7 +405,9 @@ counter_down_btn_clicked(GtkWidget *widget,
 void update_daily_counter(struct CounterUI *counterUI)
 {
     char str[TWEPOWEIGHT];
-    counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : (counterUI->curr_counter - 1);
+    counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : counterUI->curr_counter - 1;
+    if (counterUI->curr_counter < 0)
+        counterUI->curr_counter = 0;
     sprintf(str, "%d", counterUI->curr_counter);
     gtk_label_set_text(counterUI->counter_label, str);
 }
