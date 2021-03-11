@@ -5,6 +5,7 @@
 
 /*DEFINES*/
 #define DEBUG_PRINT //ENABLE debug print messages by uncommenting
+#define CLOSE_ON_FILE_ERROR
 #define ONE_KB 1024
 #define WORK 0
 #define REST 1
@@ -51,6 +52,7 @@ static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_up_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *file_path, uint8_t timerType); //return true if success
+bool init_tracking_counter(FILE *fPointer_ptr);
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
 void delete_file_path_allocation(char *file_path);
@@ -98,15 +100,20 @@ int main(int argc,
         return 1;
     }
 
+    if (!init_tracking_counter(fPointer))
+    {
+#ifdef DEBUG_PRINT
+        perror("Error opening file: ");
+#endif
+        return 1;
+    }
+
     /*INIT DAILY COUNTER FUNC()*/
     counter_up_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_up_btn"));
     counter_down_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_down_btn"));
+    //PASS FILE POIINTER
     //g_signal_connect(counter_up_btn, "clicked", G_CALLBACK(counter_up_btn_clicked), NULL);
     //g_signal_connect(counter_down_btn, "clicked", G_CALLBACK(counter_down_btn_clicked), NULL);
-
-    // fPointer = fopen("record.txt", "r+");
-    // fprintf(fPointer, "Hi!\n");
-    // fclose(fPointer);
 
     /* Connect signal handlers to the constructed widgets. */
     window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
@@ -134,7 +141,7 @@ const char *prg_path(char *file_path, const char *file_loc)
     char new_char = '/';
 
     getcwd(absPath, sizeof(absPath)); //equiv to pwd - to grab cur file path location
-    for (int i = 0; i < strlen(absPath); i++)
+    for (int i = 0; i < (int)strlen(absPath); i++)
     {
         if (absPath[i] == old_char)
         {
@@ -186,6 +193,36 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *fi
     default:
         status_flag = false;
     }
+    return status_flag;
+}
+
+bool init_tracking_counter(FILE *fPointer_ptr)
+{
+    bool status_flag = true;
+
+    fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r+");
+    if (fPointer_ptr == NULL)
+    {
+        status_flag = false;
+    }
+    if (fPointer_ptr)
+    {
+        char line[ONE_KB] = {0};
+        while (fgets(line, ONE_KB, fPointer_ptr) != NULL)
+        {
+            // Just search for the latest line, do nothing in the loop
+        }
+        /*Check if file is empty*/
+        if (strlen(line) == 0)
+        {
+            printf("Empty file\n");
+        }
+        printf("Last line: %s\n", line);
+    }
+    //fprintf(fPointer, "Hi!\n");
+
+    fclose(fPointer_ptr);
+
     return status_flag;
 }
 
