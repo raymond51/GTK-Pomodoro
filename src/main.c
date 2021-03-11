@@ -48,10 +48,13 @@ struct TimerUI
 
 struct CounterUI
 {
+    GtkLabel *counter_label;
+    GtkButton *counter_up_btn;
+    GtkButton *counter_down_btn;
+
     uint8_t Type;
     gint day_today, month_today, year_today;
     gint day_Of_Week;
-    GtkLabel *counter_label;
     int curr_counter;
     FILE *fPointer;
 };
@@ -86,8 +89,6 @@ int main(int argc,
     GtkWidget *window; //GTK window
     GtkBuilder *builder;
     char *file_path = malloc(2 * ONE_KB);
-    GtkButton *counter_up_btn;
-    GtkButton *counter_down_btn;
     GError *error = NULL;
 
     //alocation heap
@@ -124,13 +125,6 @@ int main(int argc,
 #endif
         return 1;
     }
-
-    /*INIT DAILY COUNTER FUNC()*/
-    counter_up_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_up_btn"));
-    counter_down_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_down_btn"));
-    //PASS FILE POIINTER
-    //g_signal_connect(counter_up_btn, "clicked", G_CALLBACK(counter_up_btn_clicked), NULL);
-    //g_signal_connect(counter_down_btn, "clicked", G_CALLBACK(counter_down_btn_clicked), NULL);
 
     /* Connect signal handlers to the constructed widgets. */
     window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
@@ -219,6 +213,11 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     bool status_flag = true;
     counterUI->Type = COUNTER;
     counterUI->counter_label = GTK_LABEL(gtk_builder_get_object(builder, "dailyCounter"));
+    counterUI->counter_up_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_up_btn"));
+    counterUI->counter_down_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_down_btn"));
+    g_signal_connect(counterUI->counter_up_btn, "clicked", G_CALLBACK(counter_up_btn_clicked), counterUI);
+    g_signal_connect(counterUI->counter_down_btn, "clicked", G_CALLBACK(counter_down_btn_clicked), counterUI);
+
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
 
     if (fPointer_ptr)
