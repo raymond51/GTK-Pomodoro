@@ -7,11 +7,13 @@
 #define DEBUG_PRINT //ENABLE debug print messages by uncommenting
 #define CLOSE_ON_FILE_ERROR
 #define ONE_KB 1024
+#define TWEPOWEIGHT 256
 #define WORK 0
 #define REST 1
 #define TIME_FORMAT_STRING_LEN 6
 #define MINUTE_SECONDS 59
 #define PBAR_INIT 0.0
+#define COUNTER_INIT 0
 #define WORKING_INIT_TIME_MINS 1
 #define WORKING_INIT_TIME_SECS 0
 #define RESTING_INIT_TIME_MINS 5
@@ -53,6 +55,7 @@ static void counter_up_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *file_path, uint8_t timerType); //return true if success
 bool init_tracking_counter(FILE *fPointer_ptr);
+bool file_append_new_date_entry(FILE *fPointer_ptr);
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
 void delete_file_path_allocation(char *file_path);
@@ -108,8 +111,10 @@ int main(int argc,
         return 1;
     }
 
-    /*INIT DAILY COUNTER FUNC()*/
-    counter_up_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_up_btn"));
+    guint8 day =
+
+        /*INIT DAILY COUNTER FUNC()*/
+        counter_up_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_up_btn"));
     counter_down_btn = GTK_BUTTON(gtk_builder_get_object(builder, "counter_down_btn"));
     //PASS FILE POIINTER
     //g_signal_connect(counter_up_btn, "clicked", G_CALLBACK(counter_up_btn_clicked), NULL);
@@ -201,10 +206,7 @@ bool init_tracking_counter(FILE *fPointer_ptr)
     bool status_flag = true;
 
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r+");
-    if (fPointer_ptr == NULL)
-    {
-        status_flag = false;
-    }
+
     if (fPointer_ptr)
     {
         char line[ONE_KB] = {0};
@@ -212,15 +214,57 @@ bool init_tracking_counter(FILE *fPointer_ptr)
         {
             // Just search for the latest line, do nothing in the loop
         }
+        fclose(fPointer_ptr);
+        printf("Last line: %s\n", line);
         /*Check if file is empty*/
         if (strlen(line) == 0)
         {
+            //OR IF DATE ENTRY IS NOT EQUAL TO CURRENT DATE
             printf("Empty file\n");
+            status_flag = file_append_new_date_entry(fPointer_ptr);
         }
-        printf("Last line: %s\n", line);
+        else
+        {
+            //READ LATEST DATE WITH REGEX
+            printf("Today Date exist grab and update struct\n");
+        }
     }
-    //fprintf(fPointer, "Hi!\n");
+    else if (fPointer_ptr == NULL)
+    {
+        status_flag = false;
+        fclose(fPointer_ptr);
+    }
 
+    return status_flag;
+}
+
+bool file_append_new_date_entry(FILE *fPointer_ptr)
+{
+    bool status_flag = true;
+    char buffer[TWEPOWEIGHT];
+    /*GLIB - GDateTime*/
+    GDateTime *date_time;
+    gint day, month, year;
+    date_time = g_date_time_new_now_local(); // get local time
+    day = g_date_time_get_day_of_month(date_time);
+    month = g_date_time_get_month(date_time);
+    year = g_date_time_get_year(date_time);
+
+    /*Append new date entry and init counter to 0*/
+    fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "a");
+    if (fPointer_ptr != NULL)
+    {
+        snprintf(buffer, TWEPOWEIGHT, "%d-%d-%d,%d", day, month, year, COUNTER_INIT);
+        fprintf(fPointer_ptr, "%s", buffer);
+        fflush(fPointer_ptr);
+#ifdef DEBUG_PRINT
+        printf("Successfully added new Date format entry: %d-%d-%d\n", day, month, year);
+#endif
+    }
+    else
+    {
+        status_flag = false;
+    }
     fclose(fPointer_ptr);
 
     return status_flag;
