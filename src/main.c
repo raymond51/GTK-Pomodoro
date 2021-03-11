@@ -51,7 +51,9 @@ struct CounterUI
     uint8_t Type;
     gint day_today, month_today, year_today;
     gint day_Of_Week;
+    GtkLabel *counter_label;
     int curr_counter;
+    FILE *fPointer;
 };
 
 /*Function Prototypes*/
@@ -63,8 +65,9 @@ static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_up_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *file_path, uint8_t timerType); //return true if success
-bool init_tracking_counter(struct CounterUI *counterUI, FILE *fPointer_ptr);
+bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FILE *fPointer_ptr);
 bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr);
+void init_curr_date_counter(struct CounterUI *counterUI);
 bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr);
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
@@ -85,7 +88,6 @@ int main(int argc,
     char *file_path = malloc(2 * ONE_KB);
     GtkButton *counter_up_btn;
     GtkButton *counter_down_btn;
-    FILE *fPointer;
     GError *error = NULL;
 
     //alocation heap
@@ -115,7 +117,7 @@ int main(int argc,
         return 1;
     }
 
-    if (!init_tracking_counter(counterUI_ptr, fPointer))
+    if (!init_tracking_counter(builder, counterUI_ptr, counterUI_ptr->fPointer))
     {
 #ifdef DEBUG_PRINT
         perror("Error opening file: ");
@@ -212,10 +214,11 @@ bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *fi
     return status_flag;
 }
 
-bool init_tracking_counter(struct CounterUI *counterUI, FILE *fPointer_ptr)
+bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FILE *fPointer_ptr)
 {
     bool status_flag = true;
     counterUI->Type = COUNTER;
+    counterUI->counter_label = GTK_LABEL(gtk_builder_get_object(builder, "dailyCounter"));
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
 
     if (fPointer_ptr)
@@ -249,17 +252,12 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
 {
     bool equal_date_flag = false;
     char line[ONE_KB] = {0};
-    /*GLIB - GDateTime*/
-    GDateTime *date_time;
+    char str[TWEPOWEIGHT];
     gint day, month, year;
     gint day_of_week_temp;
     int counter_temp;
-    date_time = g_date_time_new_now_local(); // get local time
-    counterUI->day_today = g_date_time_get_day_of_month(date_time);
-    counterUI->month_today = g_date_time_get_month(date_time);
-    counterUI->year_today = g_date_time_get_year(date_time);
-    counterUI->day_Of_Week = g_date_time_get_day_of_week(date_time);
-    counterUI->curr_counter = COUNTER_INIT;
+
+    init_curr_date_counter(counterUI);
 
     //OPEN FFILE AS READ AND FORMAT GRAB
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
@@ -283,10 +281,25 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
             counterUI->curr_counter = counter_temp;
         }
     }
+    /*update counter label*/
+    sprintf(str, "%d", counterUI->curr_counter);
+    gtk_label_set_text(counterUI->counter_label, str);
 
     fclose(fPointer_ptr);
 
     return equal_date_flag;
+}
+
+void init_curr_date_counter(struct CounterUI *counterUI)
+{
+    /*GLIB - GDateTime*/
+    GDateTime *date_time;
+    date_time = g_date_time_new_now_local(); // get local time
+    counterUI->day_today = g_date_time_get_day_of_month(date_time);
+    counterUI->month_today = g_date_time_get_month(date_time);
+    counterUI->year_today = g_date_time_get_year(date_time);
+    counterUI->day_Of_Week = g_date_time_get_day_of_week(date_time);
+    counterUI->curr_counter = COUNTER_INIT;
 }
 
 bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr)
