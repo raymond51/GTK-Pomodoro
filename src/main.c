@@ -259,6 +259,7 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
     counterUI->month_today = g_date_time_get_month(date_time);
     counterUI->year_today = g_date_time_get_year(date_time);
     counterUI->day_Of_Week = g_date_time_get_day_of_week(date_time);
+    counterUI->curr_counter = COUNTER_INIT;
 
     //OPEN FFILE AS READ AND FORMAT GRAB
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
