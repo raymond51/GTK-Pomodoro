@@ -56,6 +56,7 @@ struct CounterUI
     gint day_today, month_today, year_today;
     gint day_Of_Week;
     int curr_counter;
+    bool increment_counter;
     FILE *fPointer;
 };
 
@@ -77,6 +78,7 @@ void delete_allocation(struct TimerUI *ptr, gpointer data);
 void delete_allocation_counter(struct CounterUI *ptr, gpointer data);
 void delete_file_path_allocation(char *file_path);
 void play_pause_action(gpointer data);
+void update_daily_counter(struct CounterUI *counterUI);
 void reset_action(gpointer data);
 gboolean timer_handler(struct TimerUI *timerUi);
 void format_Countdown(struct TimerUI *timerUi);
@@ -218,23 +220,16 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     g_signal_connect(counterUI->counter_up_btn, "clicked", G_CALLBACK(counter_up_btn_clicked), counterUI);
     g_signal_connect(counterUI->counter_down_btn, "clicked", G_CALLBACK(counter_down_btn_clicked), counterUI);
 
+    /*check if file accessible*/
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
 
     if (fPointer_ptr)
     {
-
         fclose(fPointer_ptr);
 
-        /*Check if file is empty*/
         if (!equal_today_date(counterUI, fPointer_ptr))
         {
-            //UPDATE WITH NEW STRUCT COUNTERUI
             status_flag = file_append_new_date_entry(counterUI, fPointer_ptr);
-        }
-        else
-        {
-            //READ LATEST DATE WITH REGEX
-            printf("Today Date exist grab and update struct\n");
         }
     }
     else if (fPointer_ptr == NULL)
@@ -268,7 +263,7 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
 #ifdef DEBUG_PRINT
     printf("Last line in record.txt: %s\n", line);
 #endif
-
+    /*Check if file is not empty*/
     if (strlen(line) > 0)
     {
         sscanf(line, "%d-%d-%d,%d,%d", &day, &month, &year, &day_of_week_temp, &counter_temp);
@@ -276,6 +271,7 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
         if ((day == counterUI->day_today) && (month == counterUI->month_today) && (year == counterUI->year_today))
         {
             equal_date_flag = true;
+            /*update and assign read values to struct*/
             counterUI->day_Of_Week = day_of_week_temp;
             counterUI->curr_counter = counter_temp;
         }
@@ -391,7 +387,9 @@ counter_up_btn_clicked(GtkWidget *widget,
                        gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    (void)data;
+    struct CounterUI *counterUI_ptr = data;
+    counterUI_ptr->increment_counter = true;
+    update_daily_counter(counterUI_ptr);
 }
 
 static void
@@ -399,7 +397,17 @@ counter_down_btn_clicked(GtkWidget *widget,
                          gpointer data)
 {
     (void)widget; //To get rid of compiler warning
-    (void)data;
+    struct CounterUI *counterUI_ptr = data;
+    counterUI_ptr->increment_counter = false;
+    update_daily_counter(counterUI_ptr);
+}
+
+void update_daily_counter(struct CounterUI *counterUI)
+{
+    char str[TWEPOWEIGHT];
+    counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : (counterUI->curr_counter - 1);
+    sprintf(str, "%d", counterUI->curr_counter);
+    gtk_label_set_text(counterUI->counter_label, str);
 }
 
 /*Free malloc()*/
