@@ -19,6 +19,11 @@
 #define WORKING_INIT_TIME_SECS 0
 #define RESTING_INIT_TIME_MINS 5
 #define RESTING_INIT_TIME_SECS 0
+#define GLADE_FILE_LOC "/GTK-Pomodoro/glade/mainUI.glade"
+#define RECORD_FILE_LOC "GTK-Pomodoro/res/record.txt"
+#define NEW_RECORD_FILE_LOC "GTK-Pomodoro/res/new_record.txt"
+#define ICON_PAUSE_RES_LOC "/GTK-Pomodoro/res/icon-pause.png"
+#define ICON_PLAY_RES_LOC "/GTK-Pomodoro/res/icon-play.png"
 /*Defines for button ID*/
 typedef enum
 {
@@ -106,7 +111,7 @@ int main(int argc,
     /* Construct a GtkBuilder instance and load our UI description */
     builder = gtk_builder_new();
 
-    if (gtk_builder_add_from_file(builder, prg_path(file_path, "/GTK-Pomodoro/glade/mainUI.glade"), &error) == 0)
+    if (gtk_builder_add_from_file(builder, prg_path(file_path, GLADE_FILE_LOC), &error) == 0)
     {
 #ifdef DEBUG_PRINT
         g_printerr("Error loading glade file: %s\n", error->message);
@@ -234,7 +239,7 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     g_signal_connect(counterUI->counter_down_btn, "clicked", G_CALLBACK(counter_down_btn_clicked), counterUI);
 
     /*check if file accessible*/
-    fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
+    fPointer_ptr = fopen(RECORD_FILE_LOC, "r");
 
     if (fPointer_ptr)
     {
@@ -269,7 +274,7 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
     counterUI->final_line_count = 0;
 
     //OPEN FFILE AS READ AND FORMAT GRAB
-    fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
+    fPointer_ptr = fopen(RECORD_FILE_LOC, "r");
 
     while (fgets(line, ONE_KB, fPointer_ptr) != NULL)
     {
@@ -319,7 +324,7 @@ bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr)
     char buffer[TWEPOWEIGHT];
 
     /*Append new date entry and init counter to 0*/
-    fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "a");
+    fPointer_ptr = fopen(RECORD_FILE_LOC, "a");
     if (fPointer_ptr != NULL)
     {
         snprintf(buffer, TWEPOWEIGHT, "%d-%d-%d,%d,%d\n", counterUI->day_today, counterUI->month_today, counterUI->year_today, counterUI->day_Of_Week, COUNTER_INIT);
@@ -455,8 +460,8 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
 
     if (counterUI_ptr->record_write_enable == true)
     {
-        new_record = fopen("GTK-Pomodoro/res/new_record.txt", "w");
-        counterUI_ptr->fPointer = fopen("GTK-Pomodoro/res/record.txt", "r");
+        new_record = fopen(NEW_RECORD_FILE_LOC, "w");
+        counterUI_ptr->fPointer = fopen(RECORD_FILE_LOC, "r");
         if (new_record && counterUI_ptr->fPointer)
         {
             while (!feof(counterUI_ptr->fPointer))
@@ -478,7 +483,7 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
             fclose(new_record);
 
             /*Append new data*/
-            new_record = fopen("GTK-Pomodoro/res/new_record.txt", "a");
+            new_record = fopen(NEW_RECORD_FILE_LOC, "a");
             if (new_record != NULL)
             {
                 snprintf(str, TWEPOWEIGHT, "%d-%d-%d,%d,%d\n", counterUI_ptr->day_today, counterUI_ptr->month_today, counterUI_ptr->year_today, counterUI_ptr->day_Of_Week, counterUI_ptr->curr_counter);
@@ -495,8 +500,8 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
             message_dialog("Update Error!", "Cannot append to new record file to save daily counter");
         }
 
-        remove("GTK-Pomodoro/res/record.txt");
-        rename("GTK-Pomodoro/res/new_record.txt", "GTK-Pomodoro/res/record.txt");
+        remove(RECORD_FILE_LOC);
+        rename(NEW_RECORD_FILE_LOC, RECORD_FILE_LOC);
     }
     else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
     {
@@ -533,7 +538,7 @@ void play_pause_action(gpointer data)
         timerUI_ptr->is_playing = true;
         //init tick handler (1 second timer)
         timerUI_ptr->timer_tag = g_timeout_add_seconds(1, (GSourceFunc)timer_handler, timerUI_ptr); //store tag to destroy timeout()
-        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, "/GTK-Pomodoro/res/icon-pause.png"));
+        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, ICON_PAUSE_RES_LOC));
 #ifdef DEBUG_PRINT
         g_print("Value of timerType enabeld?: %d & timer tag: %d\n", timerUI_ptr->is_playing, timerUI_ptr->timer_tag);
 #endif
@@ -542,7 +547,7 @@ void play_pause_action(gpointer data)
     {
         timerUI_ptr->is_playing = false;
         g_source_remove(timerUI_ptr->timer_tag);
-        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, "/GTK-Pomodoro/res/icon-play.png"));
+        gtk_image_set_from_file(timerUI_ptr->play_pause_btn_image, prg_path(timerUI_ptr->file_path_loc, ICON_PLAY_RES_LOC));
 #ifdef DEBUG_PRINT
         g_print("Value of timerType enabeld?: %d\n", timerUI_ptr->is_playing);
 #endif
@@ -595,7 +600,7 @@ void format_Countdown(struct TimerUI *timerUi)
         //PLAY TIMER UP SOUND
         g_source_remove(timerUi->timer_tag);
         timerUi->is_playing = false;
-        gtk_image_set_from_file(timerUi->play_pause_btn_image, prg_path(timerUi->file_path_loc, "/GTK-Pomodoro/res/icon-play.png"));
+        gtk_image_set_from_file(timerUi->play_pause_btn_image, prg_path(timerUi->file_path_loc, ICON_PLAY_RES_LOC));
 
         timerUi->minutes = 0;
         timerUi->seconds = 0;
