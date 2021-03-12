@@ -70,6 +70,7 @@ static void resting_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 static void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_up_btn_clicked(GtkWidget *widget, gpointer data);
 static void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
+static void message_dialog(char *primary_msg, char *secondary_msg);
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *file_path, uint8_t timerType); //return true if success
 bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FILE *fPointer_ptr);
 bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr);
@@ -110,7 +111,7 @@ int main(int argc,
 #ifdef DEBUG_PRINT
         g_printerr("Error loading glade file: %s\n", error->message);
 #endif
-
+        message_dialog("Initialisation Error!", "Error loading glade file");
         g_clear_error(&error);
         counterUI_ptr->record_write_enable = false;
     }
@@ -120,6 +121,7 @@ int main(int argc,
 #ifdef DEBUG_PRINT
         g_printerr("Error loading init_timer_interface()\n");
 #endif
+        message_dialog("Initialisation Error!", "Error loading timer interface");
         counterUI_ptr->record_write_enable = false;
     }
 
@@ -128,6 +130,7 @@ int main(int argc,
 #ifdef DEBUG_PRINT
         perror("Error opening file record.txt: ");
 #endif
+        message_dialog("Initialisation Error!", "Error reading record file");
         counterUI_ptr->record_write_enable = false;
     }
 
@@ -144,7 +147,10 @@ int main(int argc,
     gtk_builder_connect_signals(builder, NULL);
 
     if (!counterUI_ptr->record_write_enable)
+    {
         gtk_widget_destroy(window);
+        return 1;
+    }
     else
         gtk_widget_show_all(window);
     gtk_main();              //run program loop
@@ -243,7 +249,6 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     else if (fPointer_ptr == NULL)
     {
         status_flag = false;
-        //fclose(fPointer_ptr);
     }
 
     return status_flag;
@@ -323,12 +328,12 @@ bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr)
 #ifdef DEBUG_PRINT
         printf("Successfully added new Date format entry: %d-%d-%d\n", counterUI->day_today, counterUI->month_today, counterUI->year_today);
 #endif
+        fclose(fPointer_ptr);
     }
     else
     {
         status_flag = false;
     }
-    fclose(fPointer_ptr);
 
     return status_flag;
 }
@@ -423,6 +428,14 @@ void update_daily_counter(struct CounterUI *counterUI)
     gtk_label_set_text(counterUI->counter_label, str);
 }
 
+static void message_dialog(char *primary_msg, char *secondary_msg)
+{
+    GtkWidget *message = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, primary_msg);
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(message), secondary_msg, 99);
+    gtk_dialog_run(GTK_DIALOG(message));
+    gtk_widget_destroy(message);
+}
+
 /*Free malloc()*/
 void delete_allocation(struct TimerUI *ptr, gpointer data)
 {
@@ -463,19 +476,18 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
 
             fclose(counterUI_ptr->fPointer);
             fclose(new_record);
-        }
-        else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
-        {
+            //APPEND NEW DATA
 
-            fclose(new_record);
-            fclose(counterUI_ptr->fPointer);
 #ifdef DEBUG_PRINT
-            g_print("Cannot open new record file to write to!\n");
+            g_print("Updated record file!\n");
 #endif
         }
-
+    }
+    else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
+    {
+        message_dialog("Update Error!", "Cannot save daily counter to file");
 #ifdef DEBUG_PRINT
-        g_print("Updated record file!\n");
+        g_print("Cannot open new record file to write to!\n");
 #endif
     }
 }
