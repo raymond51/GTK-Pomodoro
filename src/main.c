@@ -476,16 +476,31 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
 
             fclose(counterUI_ptr->fPointer);
             fclose(new_record);
-            //APPEND NEW DATA
 
+            /*Append new data*/
+            new_record = fopen("GTK-Pomodoro/res/new_record.txt", "a");
+            if (new_record != NULL)
+            {
+                snprintf(str, TWEPOWEIGHT, "%d-%d-%d,%d,%d\n", counterUI_ptr->day_today, counterUI_ptr->month_today, counterUI_ptr->year_today, counterUI_ptr->day_Of_Week, counterUI_ptr->curr_counter);
+                fprintf(new_record, "%s", str);
+                fflush(new_record);
+                fclose(new_record);
 #ifdef DEBUG_PRINT
-            g_print("Updated record file!\n");
+                g_print("Updated record file!\n");
 #endif
+            }
         }
+        else
+        {
+            message_dialog("Update Error!", "Cannot append to new record file to save daily counter");
+        }
+
+        remove("GTK-Pomodoro/res/record.txt");
+        rename("GTK-Pomodoro/res/new_record.txt", "GTK-Pomodoro/res/record.txt");
     }
     else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
     {
-        message_dialog("Update Error!", "Cannot save daily counter to file");
+        message_dialog("Update Error!", "Cannot load record file to save daily counter");
 #ifdef DEBUG_PRINT
         g_print("Cannot open new record file to write to!\n");
 #endif
