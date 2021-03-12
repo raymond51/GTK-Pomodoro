@@ -108,14 +108,11 @@ int main(int argc,
     if (gtk_builder_add_from_file(builder, prg_path(file_path, "/GTK-Pomodoro/glade/mainUI.glade"), &error) == 0)
     {
 #ifdef DEBUG_PRINT
-        g_printerr("Error loading file: %s\n", error->message);
+        g_printerr("Error loading glade file: %s\n", error->message);
 #endif
 
         g_clear_error(&error);
         counterUI_ptr->record_write_enable = false;
-
-        //CONSIDER void gtk_window_close (GtkWindow *window);
-        return 1;
     }
 
     if (!init_timer_interface(builder, work_TimerUI, file_path, WORK) || !init_timer_interface(builder, rest_TimerUI, file_path, REST))
@@ -124,32 +121,32 @@ int main(int argc,
         g_printerr("Error loading init_timer_interface()\n");
 #endif
         counterUI_ptr->record_write_enable = false;
-        return 1;
     }
 
     if (!init_tracking_counter(builder, counterUI_ptr, counterUI_ptr->fPointer))
     {
 #ifdef DEBUG_PRINT
-        perror("Error opening file: ");
+        perror("Error opening file record.txt: ");
 #endif
         counterUI_ptr->record_write_enable = false;
-        return 1;
     }
-    /*Enable creating new record file if all safety checks cleared*/
-    counterUI_ptr->record_write_enable = true;
+
     /* Connect signal handlers to the constructed widgets. */
-    window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
-    gtk_window_set_title(GTK_WINDOW(window), "Pomodoroooo!");             //Set title of program
+    window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));
+    gtk_window_set_title(GTK_WINDOW(window), "Pomodoroooo!"); //Set title of program
+
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(update_record_file), counterUI_ptr);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation_counter), counterUI_ptr);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_file_path_allocation), file_path);
-    /*CALL DESTROY FOR FILE POINTER*/
-
     gtk_builder_connect_signals(builder, NULL);
-    gtk_widget_show_all(window);
+
+    if (!counterUI_ptr->record_write_enable)
+        gtk_widget_destroy(window);
+    else
+        gtk_widget_show_all(window);
     gtk_main();              //run program loop
     g_object_unref(builder); //free object in memory
 
@@ -236,7 +233,8 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     if (fPointer_ptr)
     {
         fclose(fPointer_ptr);
-
+        /*Enable creating new record file if all safety checks cleared*/
+        counterUI->record_write_enable = true;
         if (!equal_today_date(counterUI, fPointer_ptr))
         {
             status_flag = file_append_new_date_entry(counterUI, fPointer_ptr);
@@ -245,7 +243,7 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     else if (fPointer_ptr == NULL)
     {
         status_flag = false;
-        fclose(fPointer_ptr);
+        //fclose(fPointer_ptr);
     }
 
     return status_flag;
