@@ -58,6 +58,8 @@ struct CounterUI
     int curr_counter;
     bool increment_counter;
     FILE *fPointer;
+    int final_line_count;
+    bool record_write_enable;
 };
 
 /*Function Prototypes*/
@@ -75,6 +77,7 @@ void init_curr_date_counter(struct CounterUI *counterUI);
 bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr);
 bool reset_timer(struct TimerUI *timerUi);
 void delete_allocation(struct TimerUI *ptr, gpointer data);
+void update_record_file(struct CounterUI *ptr, gpointer data);
 void delete_allocation_counter(struct CounterUI *ptr, gpointer data);
 void delete_file_path_allocation(char *file_path);
 void play_pause_action(gpointer data);
@@ -109,6 +112,9 @@ int main(int argc,
 #endif
 
         g_clear_error(&error);
+        counterUI_ptr->record_write_enable = false;
+
+        //CONSIDER void gtk_window_close (GtkWindow *window);
         return 1;
     }
 
@@ -117,6 +123,7 @@ int main(int argc,
 #ifdef DEBUG_PRINT
         g_printerr("Error loading init_timer_interface()\n");
 #endif
+        counterUI_ptr->record_write_enable = false;
         return 1;
     }
 
@@ -125,15 +132,18 @@ int main(int argc,
 #ifdef DEBUG_PRINT
         perror("Error opening file: ");
 #endif
+        counterUI_ptr->record_write_enable = false;
         return 1;
     }
-
+    /*Enable creating new record file if all safety checks cleared*/
+    counterUI_ptr->record_write_enable = true;
     /* Connect signal handlers to the constructed widgets. */
     window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));   //PARAM: , widget ID
     gtk_window_set_title(GTK_WINDOW(window), "Pomodoroooo!");             //Set title of program
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);
+    g_signal_connect_swapped(window, "destroy", G_CALLBACK(update_record_file), counterUI_ptr);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation_counter), counterUI_ptr);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_file_path_allocation), file_path);
     /*CALL DESTROY FOR FILE POINTER*/
@@ -247,11 +257,13 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
     bool equal_date_flag = false;
     char line[ONE_KB] = {0};
     char str[TWEPOWEIGHT];
+
     gint day, month, year;
     gint day_of_week_temp;
     int counter_temp;
 
     init_curr_date_counter(counterUI);
+    counterUI->final_line_count = 0;
 
     //OPEN FFILE AS READ AND FORMAT GRAB
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "r");
@@ -259,9 +271,10 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
     while (fgets(line, ONE_KB, fPointer_ptr) != NULL)
     {
         // Just search for the latest line, do nothing in the loop
+        counterUI->final_line_count++;
     }
 #ifdef DEBUG_PRINT
-    printf("Last line in record.txt: %s\n", line);
+    printf("Last line in record.txt: %s and Line count: %d\n", line, counterUI->final_line_count);
 #endif
     /*Check if file is not empty*/
     if (strlen(line) > 0)
@@ -306,7 +319,7 @@ bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr)
     fPointer_ptr = fopen("GTK-Pomodoro/res/record.txt", "a");
     if (fPointer_ptr != NULL)
     {
-        snprintf(buffer, TWEPOWEIGHT, "%d-%d-%d,%d,%d", counterUI->day_today, counterUI->month_today, counterUI->year_today, counterUI->day_Of_Week, COUNTER_INIT);
+        snprintf(buffer, TWEPOWEIGHT, "%d-%d-%d,%d,%d\n", counterUI->day_today, counterUI->month_today, counterUI->year_today, counterUI->day_Of_Week, COUNTER_INIT);
         fprintf(fPointer_ptr, "%s", buffer);
         fflush(fPointer_ptr);
 #ifdef DEBUG_PRINT
@@ -405,7 +418,7 @@ counter_down_btn_clicked(GtkWidget *widget,
 void update_daily_counter(struct CounterUI *counterUI)
 {
     char str[TWEPOWEIGHT];
-    counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : counterUI->curr_counter - 1;
+    counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : (counterUI->curr_counter - 1);
     if (counterUI->curr_counter < 0)
         counterUI->curr_counter = 0;
     sprintf(str, "%d", counterUI->curr_counter);
@@ -420,6 +433,53 @@ void delete_allocation(struct TimerUI *ptr, gpointer data)
     g_print("Memory allocation freed %u! \n", ptr->Type);
 #endif
     g_free(ptr);
+}
+
+void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
+{
+    (void)data; //To get rid of compiler warning
+    FILE *new_record;
+    char str[TWEPOWEIGHT];
+    int line_counter = 0;
+
+    if (counterUI_ptr->record_write_enable == true)
+    {
+        new_record = fopen("GTK-Pomodoro/res/new_record.txt", "w");
+        counterUI_ptr->fPointer = fopen("GTK-Pomodoro/res/record.txt", "r");
+        if (new_record && counterUI_ptr->fPointer)
+        {
+            while (!feof(counterUI_ptr->fPointer))
+            {
+                strcpy(str, "\0");
+                fgets(str, TWEPOWEIGHT, counterUI_ptr->fPointer);
+                if (!feof(counterUI_ptr->fPointer))
+                {
+                    line_counter++;
+                    //ignore copying of last line
+                    if (line_counter != counterUI_ptr->final_line_count)
+                    {
+                        fprintf(new_record, "%s", str);
+                    }
+                }
+            }
+
+            fclose(counterUI_ptr->fPointer);
+            fclose(new_record);
+        }
+        else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
+        {
+
+            fclose(new_record);
+            fclose(counterUI_ptr->fPointer);
+#ifdef DEBUG_PRINT
+            g_print("Cannot open new record file to write to!\n");
+#endif
+        }
+
+#ifdef DEBUG_PRINT
+        g_print("Updated record file!\n");
+#endif
+    }
 }
 
 void delete_allocation_counter(struct CounterUI *ptr, gpointer data)
