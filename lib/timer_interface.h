@@ -21,6 +21,15 @@
 #define ICON_PAUSE_RES_LOC "/GTK-Pomodoro/res/icon-pause.png"
 #define ICON_PLAY_RES_LOC "/GTK-Pomodoro/res/icon-play.png"
 
+/*Enum*/
+typedef enum
+{
+    WORK_PLAY_PAUSE_BTN = 0,
+    WORK_RESET_BTN,
+    REST_PLAY_PAUSE_BTN,
+    REST_RESET_BTN
+} button_id_Enum;
+
 /*Structure*/
 struct TimerUI
 {

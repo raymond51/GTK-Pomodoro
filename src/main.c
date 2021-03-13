@@ -29,14 +29,6 @@
 #define NEW_RECORD_FILE_LOC "GTK-Pomodoro/res/new_record.txt"
 
 /*Defines for button ID*/
-typedef enum
-{
-    WORK_PLAY_PAUSE_BTN = 0,
-    WORK_RESET_BTN,
-    REST_PLAY_PAUSE_BTN,
-    REST_RESET_BTN
-} button_id_Enum;
-
 struct CounterUI
 {
     GtkLabel *counter_label;
