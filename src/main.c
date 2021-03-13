@@ -21,22 +21,13 @@
 #define CLOSE_ON_FILE_ERROR
 #define ONE_KB 1024
 #define TWEPOWEIGHT 256
-#define WORK 0
-#define REST 1
+
 #define COUNTER 2
-#define TIME_FORMAT_STRING_LEN 6
-#define MINUTE_SECONDS 59
-#define PBAR_INIT 0.0
-#define COUNTER_INIT 0
-#define WORKING_INIT_TIME_MINS 1
-#define WORKING_INIT_TIME_SECS 0
-#define RESTING_INIT_TIME_MINS 5
-#define RESTING_INIT_TIME_SECS 0
+
 #define GLADE_FILE_LOC "/GTK-Pomodoro/glade/mainUI.glade"
 #define RECORD_FILE_LOC "GTK-Pomodoro/res/record.txt"
 #define NEW_RECORD_FILE_LOC "GTK-Pomodoro/res/new_record.txt"
-#define ICON_PAUSE_RES_LOC "/GTK-Pomodoro/res/icon-pause.png"
-#define ICON_PLAY_RES_LOC "/GTK-Pomodoro/res/icon-play.png"
+
 /*Defines for button ID*/
 typedef enum
 {

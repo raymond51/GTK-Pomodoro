@@ -7,6 +7,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+/*defines*/
+#define WORK 0
+#define REST 1
+#define TIME_FORMAT_STRING_LEN 6
+#define MINUTE_SECONDS 59
+#define PBAR_INIT 0.0
+#define COUNTER_INIT 0
+#define WORKING_INIT_TIME_MINS 1
+#define WORKING_INIT_TIME_SECS 0
+#define RESTING_INIT_TIME_MINS 5
+#define RESTING_INIT_TIME_SECS 0
+#define ICON_PAUSE_RES_LOC "/GTK-Pomodoro/res/icon-pause.png"
+#define ICON_PLAY_RES_LOC "/GTK-Pomodoro/res/icon-play.png"
+
 /*Structure*/
 struct TimerUI
 {
