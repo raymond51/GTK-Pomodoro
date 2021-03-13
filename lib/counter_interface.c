@@ -169,7 +169,7 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
                 {
                     line_counter++;
                     //ignore copying of last line
-                    if (line_counter != counterUI_ptr->final_line_count)
+                    if (line_counter < counterUI_ptr->final_line_count)
                     {
                         fprintf(new_record, "%s", str);
                     }
