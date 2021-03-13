@@ -33,3 +33,4 @@ void message_dialog(char *primary_msg, char *secondary_msg)
     gtk_dialog_run(GTK_DIALOG(message));
     gtk_widget_destroy(message);
 }
+

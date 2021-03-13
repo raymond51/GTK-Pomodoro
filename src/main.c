@@ -18,11 +18,7 @@
 #include "timer_interface.h"
 #include "counter_interface.h"
 
-/*DEFINES*/
-#define CLOSE_ON_FILE_ERROR
-
-/*Function Prototypes*/
-
+/*Function prototype*/
 void delete_allocation(struct TimerUI *ptr, gpointer data);
 void delete_allocation_counter(struct CounterUI *ptr, gpointer data);
 void delete_file_path_allocation(char *file_path);
@@ -39,7 +35,6 @@ int main(int argc,
     //alocation heap
     struct TimerUI *work_TimerUI = malloc(sizeof *work_TimerUI), *rest_TimerUI = malloc(sizeof *rest_TimerUI);
     struct CounterUI *counterUI_ptr = malloc(sizeof *counterUI_ptr);
-
     gtk_init(&argc, &argv);
 
     /* Construct a GtkBuilder instance and load our UI description */
@@ -73,10 +68,10 @@ int main(int argc,
         counterUI_ptr->record_write_enable = false;
     }
 
-    /* Connect signal handlers to the constructed widgets. */
     window = GTK_WIDGET(gtk_builder_get_object(builder, "mainWindow"));
     gtk_window_set_title(GTK_WINDOW(window), "Pomodoroooo!"); //Set title of program
 
+    /* Connect signal handlers to the constructed widgets. */
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //callback func to destroy window upon exit
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), work_TimerUI);
     g_signal_connect_swapped(window, "destroy", G_CALLBACK(delete_allocation), rest_TimerUI);

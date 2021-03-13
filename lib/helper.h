@@ -16,4 +16,5 @@
 const char *prg_path(char *file_path, const char *file_loc);
 void message_dialog(char *primary_msg, char *secondary_msg);
 
+
 #endif //HELPER_H

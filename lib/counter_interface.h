@@ -32,12 +32,8 @@ struct CounterUI
 
 /*Function prototype*/
 bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FILE *fPointer_ptr);
-bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr);
 void counter_up_btn_clicked(GtkWidget *widget, gpointer data);
 void counter_down_btn_clicked(GtkWidget *widget, gpointer data);
-void init_curr_date_counter(struct CounterUI *counterUI);
-bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr);
-void update_daily_counter(struct CounterUI *counterUI);
 void update_record_file(struct CounterUI *ptr, gpointer data);
 
 #endif //COUNTER_INTERFACE_H

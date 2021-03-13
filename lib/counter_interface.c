@@ -1,5 +1,11 @@
 #include "counter_interface.h"
 
+/*Static function prototypes*/
+static bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr);
+static void init_curr_date_counter(struct CounterUI *counterUI);
+static bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr);
+static void update_daily_counter(struct CounterUI *counterUI);
+
 bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FILE *fPointer_ptr)
 {
     bool status_flag = true;
@@ -31,7 +37,7 @@ bool init_tracking_counter(GtkBuilder *builder, struct CounterUI *counterUI, FIL
     return status_flag;
 }
 
-void init_curr_date_counter(struct CounterUI *counterUI)
+static void init_curr_date_counter(struct CounterUI *counterUI)
 {
     /*GLIB - GDateTime*/
     GDateTime *date_time;
@@ -44,7 +50,7 @@ void init_curr_date_counter(struct CounterUI *counterUI)
 }
 
 /*Open file in read mode and update counterUI struct with today date*/
-bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
+static bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
 {
     bool equal_date_flag = false;
     char line[ONE_KB] = {0};
@@ -90,7 +96,7 @@ bool equal_today_date(struct CounterUI *counterUI, FILE *fPointer_ptr)
     return equal_date_flag;
 }
 
-bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr)
+static bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPointer_ptr)
 {
     bool status_flag = true;
     char buffer[TWEPOWEIGHT];
@@ -131,7 +137,7 @@ void counter_down_btn_clicked(GtkWidget *widget, gpointer data)
     update_daily_counter(counterUI_ptr);
 }
 
-void update_daily_counter(struct CounterUI *counterUI)
+static void update_daily_counter(struct CounterUI *counterUI)
 {
     char str[TWEPOWEIGHT];
     counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : (counterUI->curr_counter - 1);
