@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include "timer_interface.h"
+#include "timer_interface.h"
 
 /*DEFINES*/
 #define DEBUG_PRINT //ENABLE debug print messages by uncommenting
@@ -45,24 +45,6 @@ typedef enum
     REST_PLAY_PAUSE_BTN,
     REST_RESET_BTN
 } button_id_Enum;
-
-/*Structure*/
-struct TimerUI
-{
-
-    GtkLabel *timeKeeper_label;
-    GtkButton *play_pause_button;
-    GtkButton *reset_button;
-    GtkImage *play_pause_btn_image;
-    GtkProgressBar *pbar;
-
-    uint8_t Type;
-    bool is_playing;
-    char *file_path_loc;
-    guint timer_tag;
-    int minutes;
-    int seconds;
-};
 
 struct CounterUI
 {
