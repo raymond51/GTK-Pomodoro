@@ -34,3 +34,14 @@ void message_dialog(char *primary_msg, char *secondary_msg)
     gtk_widget_destroy(message);
 }
 
+/*Enable manual update request of daily counter depending on user*/
+bool message_dialog_counter_update(char *primary_msg, char *secondary_msg)
+{
+    bool user_status;
+    GtkWidget *message = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL, primary_msg);
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(message), secondary_msg, 99);
+    int response = gtk_dialog_run(GTK_DIALOG(message));
+    user_status = (response == GTK_RESPONSE_OK) ? true : false;
+    gtk_widget_destroy(message);
+    return user_status;
+}

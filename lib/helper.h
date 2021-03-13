@@ -4,6 +4,7 @@
 /*includes*/
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 /*defines*/
@@ -15,6 +16,6 @@
 /*Function Prototypes*/
 const char *prg_path(char *file_path, const char *file_loc);
 void message_dialog(char *primary_msg, char *secondary_msg);
-
+bool message_dialog_counter_update(char *primary_msg, char *secondary_msg);
 
 #endif //HELPER_H

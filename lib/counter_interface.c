@@ -140,7 +140,8 @@ void counter_down_btn_clicked(GtkWidget *widget, gpointer data)
 static void update_daily_counter(struct CounterUI *counterUI)
 {
     char str[TWEPOWEIGHT];
-    counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : (counterUI->curr_counter - 1);
+    if (message_dialog_counter_update("Confirm Update", "Are you sure you want to update?"))
+        counterUI->curr_counter = (counterUI->increment_counter == true) ? (counterUI->curr_counter + 1) : (counterUI->curr_counter - 1);
     if (counterUI->curr_counter < 0)
         counterUI->curr_counter = 0;
     sprintf(str, "%d", counterUI->curr_counter);
