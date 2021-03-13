@@ -1,7 +1,20 @@
+//* Info -----------
+// Author: Raymond
+// Version: -
+
+//This file is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
+//the Free Software Foundation; either version 3, or (at your option) any later version.
+
+//For a full copy of the GNU General Public License
+//view <http://www.gnu.org/licenses/>.
+//--------------------
+
+//includes
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
+//#include "timer_interface.h"
 
 /*DEFINES*/
 #define DEBUG_PRINT //ENABLE debug print messages by uncommenting
@@ -490,25 +503,25 @@ void update_record_file(struct CounterUI *counterUI_ptr, gpointer data)
                 fprintf(new_record, "%s", str);
                 fflush(new_record);
                 fclose(new_record);
+
+                remove(RECORD_FILE_LOC);
+                rename(NEW_RECORD_FILE_LOC, RECORD_FILE_LOC);
 #ifdef DEBUG_PRINT
                 g_print("Updated record file!\n");
 #endif
             }
+            else
+            {
+                message_dialog("Update Error!", "Cannot append to new record file to save daily counter");
+            }
         }
-        else
+        else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
         {
-            message_dialog("Update Error!", "Cannot append to new record file to save daily counter");
-        }
-
-        remove(RECORD_FILE_LOC);
-        rename(NEW_RECORD_FILE_LOC, RECORD_FILE_LOC);
-    }
-    else if (new_record == NULL || counterUI_ptr->fPointer == NULL)
-    {
-        message_dialog("Update Error!", "Cannot load record file to save daily counter");
+            message_dialog("Update Error!", "Cannot load record file to save daily counter");
 #ifdef DEBUG_PRINT
-        g_print("Cannot open new record file to write to!\n");
+            g_print("Cannot open new record file to write to!\n");
 #endif
+        }
     }
 }
 
