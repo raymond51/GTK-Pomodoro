@@ -25,3 +25,11 @@ const char *prg_path(char *file_path, const char *file_loc)
 #endif
     return file_path;
 }
+
+void message_dialog(char *primary_msg, char *secondary_msg)
+{
+    GtkWidget *message = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, primary_msg);
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(message), secondary_msg, 99);
+    gtk_dialog_run(GTK_DIALOG(message));
+    gtk_widget_destroy(message);
+}
