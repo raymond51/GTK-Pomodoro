@@ -54,11 +54,5 @@ void working_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 void working_reset_btn_clicked(GtkWidget *widget, gpointer data);
 void resting_play_pause_btn_clicked(GtkWidget *widget, gpointer data);
 void resting_reset_btn_clicked(GtkWidget *widget, gpointer data);
-void play_pause_action(gpointer data);
-void reset_action(gpointer data);
-gboolean timer_handler(struct TimerUI *timerUi);
-void format_Countdown(struct TimerUI *timerUi);
-void pbar_update(struct TimerUI *timerUi);
-bool reset_timer(struct TimerUI *timerUi);
 
 #endif //TIMER_INTERFACE_H_

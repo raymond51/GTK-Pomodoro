@@ -1,5 +1,13 @@
 #include "timer_interface.h"
 
+/*Static function prototypes*/
+static void play_pause_action(gpointer data);
+static void reset_action(gpointer data);
+static void pbar_update(struct TimerUI *timerUi);
+static bool reset_timer(struct TimerUI *timerUi);
+static void format_Countdown(struct TimerUI *timerUi);
+static gboolean timer_handler(struct TimerUI *timerUi);
+
 bool init_timer_interface(GtkBuilder *builder, struct TimerUI *timerUi, char *file_path, uint8_t timerType)
 {
     bool status_flag = true;
@@ -67,7 +75,7 @@ void resting_reset_btn_clicked(GtkWidget *widget,
     reset_action(data);
 }
 
-void play_pause_action(gpointer data)
+static void play_pause_action(gpointer data)
 {
 
     struct TimerUI *timerUI_ptr = data;
@@ -92,7 +100,7 @@ void play_pause_action(gpointer data)
     }
 }
 
-void reset_action(gpointer data)
+static void reset_action(gpointer data)
 {
     struct TimerUI *timerUI_ptr = data;
     if (timerUI_ptr->is_playing != true)
@@ -116,13 +124,13 @@ void reset_action(gpointer data)
 }
 
 // handler for the 1 second timer tick
-gboolean timer_handler(struct TimerUI *timerUi)
+static gboolean timer_handler(struct TimerUI *timerUi)
 {
     format_Countdown(timerUi);
     return TRUE;
 }
 
-void format_Countdown(struct TimerUI *timerUi)
+static void format_Countdown(struct TimerUI *timerUi)
 {
     char formattedTime[TIME_FORMAT_STRING_LEN];
     timerUi->seconds--;
@@ -147,14 +155,14 @@ void format_Countdown(struct TimerUI *timerUi)
     gtk_label_set_text(timerUi->timeKeeper_label, formattedTime);
 }
 
-void pbar_update(struct TimerUI *timerUi)
+static void pbar_update(struct TimerUI *timerUi)
 {
     float total_time = (timerUi->Type == WORK) ? WORKING_INIT_TIME_MINS * MINUTE_SECONDS + WORKING_INIT_TIME_SECS : RESTING_INIT_TIME_MINS * MINUTE_SECONDS + RESTING_INIT_TIME_SECS;
     float ratio = (total_time - ((float)timerUi->minutes * MINUTE_SECONDS + (float)timerUi->seconds)) / total_time;
     gtk_progress_bar_set_fraction(timerUi->pbar, ratio);
 }
 
-bool reset_timer(struct TimerUI *timerUi)
+static bool reset_timer(struct TimerUI *timerUi)
 {
     bool status_flag = true;
     gdouble pbar_init = PBAR_INIT;
