@@ -143,13 +143,16 @@ static void format_Countdown(struct TimerUI *timerUi)
     }
     else if (timerUi->minutes <= 0 && timerUi->seconds < 0)
     {
-        //PLAY TIMER UP SOUND
+
         g_source_remove(timerUi->timer_tag);
         timerUi->is_playing = false;
         gtk_image_set_from_file(timerUi->play_pause_btn_image, prg_path(timerUi->file_path_loc, ICON_PLAY_RES_LOC));
 
         timerUi->minutes = 0;
         timerUi->seconds = 0;
+
+        /*play audio timer up*/
+        timer_up_audio_play();
     }
     snprintf(formattedTime, TIME_FORMAT_STRING_LEN, "%d:%2.2d", timerUi->minutes, timerUi->seconds);
     gtk_label_set_text(timerUi->timeKeeper_label, formattedTime);
