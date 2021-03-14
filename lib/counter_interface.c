@@ -108,10 +108,11 @@ static bool file_append_new_date_entry(struct CounterUI *counterUI, FILE *fPoint
         snprintf(buffer, TWEPOWEIGHT, "%d-%d-%d,%d,%d\n", counterUI->day_today, counterUI->month_today, counterUI->year_today, counterUI->day_Of_Week, COUNTER_INIT);
         fprintf(fPointer_ptr, "%s", buffer);
         fflush(fPointer_ptr);
+        fclose(fPointer_ptr);
 #ifdef DEBUG_PRINT
         printf("Successfully added new Date format entry: %d-%d-%d\n", counterUI->day_today, counterUI->month_today, counterUI->year_today);
 #endif
-        fclose(fPointer_ptr);
+        counterUI->final_line_count++;
     }
     else
     {
